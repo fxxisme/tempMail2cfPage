@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_BASE || 'https://tmpmail.951021.xyz').replace(/\/$/, '')
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
 function cleanHeaderValue(value) {
   if (!value || value === 'undefined') return ''

@@ -1,7 +1,7 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { createApi } from './api'
-import { parseMailItem } from './mailParser'
+import { parseMailAttachments, parseMailItem, revokeAttachmentUrls } from './mailParser'
 
 const STORAGE_KEYS = {
   sitePassword: 'tm2_site_password',
@@ -33,6 +33,7 @@ const state = reactive({
     needAuth: false,
     enableUserCreateEmail: true,
     enableUserDeleteEmail: false,
+    disableAnonymousUserCreateEmail: false,
     disableCustomAddressName: false,
     randomSubdomainDomains: [],
   },
@@ -45,6 +46,9 @@ const state = reactive({
   mails: [],
   selectedMailId: null,
   mailViewMode: 'text',
+  mailAttachments: [],
+  mailAttachmentsForId: null,
+  mailAttachmentsLoading: false,
   search: '',
   activeMobilePane: 'address',
   isAdminRoute: false,
@@ -55,6 +59,9 @@ const state = reactive({
   adminMails: [],
   adminSelectedMailId: null,
   adminMailViewMode: 'text',
+  adminMailAttachments: [],
+  adminMailAttachmentsForId: null,
+  adminMailAttachmentsLoading: false,
   adminQuery: '',
   adminMailAddress: '',
 })
@@ -97,6 +104,11 @@ const selectedAdminMail = computed(() => {
 
 const unreadCount = computed(() => state.mails.length)
 const themeActionLabel = computed(() => (state.theme === 'dark' ? '亮色' : '暗色'))
+const canCreateAddress = computed(() => (
+  state.settings.enableUserCreateEmail !== false
+  && state.settings.disableAnonymousUserCreateEmail !== true
+))
+const canDeleteAddress = computed(() => state.settings.enableUserDeleteEmail !== false)
 
 function readInitialTheme() {
   const saved = localStorage.getItem(STORAGE_KEYS.theme)
@@ -218,6 +230,7 @@ function normalizeOpenSettings(raw) {
     prefix: raw?.prefix || '',
     minAddressLen: raw?.minAddressLen || 1,
     maxAddressLen: raw?.maxAddressLen || 30,
+    disableAnonymousUserCreateEmail: raw?.disableAnonymousUserCreateEmail === true,
     randomSubdomainDomains: Array.isArray(raw?.randomSubdomainDomains) ? raw.randomSubdomainDomains : [],
   }
 }
@@ -289,6 +302,10 @@ function parseDraftAddress() {
 }
 
 async function createAddress() {
+  if (!canCreateAddress.value) {
+    state.error = '当前配置不允许匿名创建邮箱地址'
+    return
+  }
   const parsed = parseDraftAddress()
   if (!parsed.domain) {
     state.error = '没有可用域名，请检查 Worker 的 DOMAINS / DEFAULT_DOMAINS 配置'
@@ -339,6 +356,7 @@ async function fetchMails() {
   if (!result) return
   state.mails = Array.isArray(result.results) ? result.results.map(parseMailItem) : []
   state.selectedMailId = state.mails[0]?.id || null
+  await loadMailAttachments(selectedMail.value)
 }
 
 async function deleteSelectedMail() {
@@ -350,6 +368,11 @@ async function deleteSelectedMail() {
 
 async function deleteAddress() {
   if (!state.addressJwt || !confirm('确定删除当前地址？')) return
+  if (!canDeleteAddress.value) {
+    state.error = '当前配置不允许删除邮箱地址'
+    return
+  }
+  const deletingJwt = state.addressJwt
   const ok = await run(() => api.deleteAddress(), '地址已删除')
   if (ok === null) return
   state.addressJwt = ''
@@ -357,7 +380,17 @@ async function deleteAddress() {
   state.mails = []
   state.selectedMailId = null
   localStorage.removeItem(STORAGE_KEYS.addressJwt)
+  writeLocalAddressCache(readLocalAddressCache().filter((item) => item !== deletingJwt))
   syncLocalAddresses()
+}
+
+async function clearInbox() {
+  if (!state.addressJwt || !confirm('确定清空当前邮箱的所有邮件？')) return
+  const ok = await run(() => api.clearInbox(), '收件箱已清空')
+  if (ok === null) return
+  state.mails = []
+  state.selectedMailId = null
+  await loadMailAttachments(null)
 }
 
 async function copyAddress() {
@@ -370,10 +403,12 @@ async function copyAddress() {
 function selectMail(mail) {
   state.selectedMailId = mail.id
   state.activeMobilePane = 'content'
+  void loadMailAttachments(mail)
 }
 
 function selectAdminMail(mail) {
   state.adminSelectedMailId = mail.id
+  void loadAdminMailAttachments(mail)
 }
 
 async function adminLogin() {
@@ -426,6 +461,7 @@ async function loadAdminMails(address = state.adminMailAddress) {
   if (result) {
     state.adminMails = Array.isArray(result.results) ? result.results.map(parseMailItem) : []
     state.adminSelectedMailId = state.adminMails[0]?.id || null
+    await loadAdminMailAttachments(selectedAdminMail.value)
   }
 }
 
@@ -433,6 +469,18 @@ async function adminDeleteAddress(id) {
   if (!confirm('确定删除这个地址？')) return
   await run(() => api.adminDeleteAddress(id), '地址已删除')
   await loadAdminAddresses()
+}
+
+async function adminShowCredential(id) {
+  const result = await run(() => api.adminShowAddressCredential(id), '地址凭证已读取')
+  if (!result) return
+  const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2)
+  try {
+    await navigator.clipboard.writeText(text)
+    showToast('地址凭证已复制')
+  } catch {
+    window.alert(text)
+  }
 }
 
 async function adminDeleteMail(id) {
@@ -466,6 +514,53 @@ function compactMailBody(mail) {
 function originalMailSource(mail) {
   if (!mail) return ''
   return mail.message || `<pre>${escapeHtml(mail.raw || mail.text || '')}</pre>`
+}
+
+function formatBytes(value) {
+  const size = Number(value || 0)
+  if (size < 1024) return `${size} B`
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+  return `${(size / 1024 / 1024).toFixed(1)} MB`
+}
+
+async function loadMailAttachments(mail) {
+  revokeAttachmentUrls(state.mailAttachments)
+  state.mailAttachments = []
+  state.mailAttachmentsForId = mail?.id || null
+  if (!mail?.raw) return
+  state.mailAttachmentsLoading = true
+  try {
+    const attachments = await parseMailAttachments(mail)
+    if (state.mailAttachmentsForId === mail.id) {
+      state.mailAttachments = attachments
+    } else {
+      revokeAttachmentUrls(attachments)
+    }
+  } catch (error) {
+    setError(error)
+  } finally {
+    if (state.mailAttachmentsForId === mail.id) state.mailAttachmentsLoading = false
+  }
+}
+
+async function loadAdminMailAttachments(mail) {
+  revokeAttachmentUrls(state.adminMailAttachments)
+  state.adminMailAttachments = []
+  state.adminMailAttachmentsForId = mail?.id || null
+  if (!mail?.raw) return
+  state.adminMailAttachmentsLoading = true
+  try {
+    const attachments = await parseMailAttachments(mail)
+    if (state.adminMailAttachmentsForId === mail.id) {
+      state.adminMailAttachments = attachments
+    } else {
+      revokeAttachmentUrls(attachments)
+    }
+  } catch (error) {
+    setError(error)
+  } finally {
+    if (state.adminMailAttachmentsForId === mail.id) state.adminMailAttachmentsLoading = false
+  }
 }
 
 function escapeHtml(value) {
@@ -512,6 +607,11 @@ onMounted(async () => {
     await loadAdminOverview()
   }
   state.booted = true
+})
+
+onBeforeUnmount(() => {
+  revokeAttachmentUrls(state.mailAttachments)
+  revokeAttachmentUrls(state.adminMailAttachments)
 })
 </script>
 
@@ -618,6 +718,7 @@ onMounted(async () => {
             </div>
             <div class="row-actions">
               <button class="btn" :disabled="state.loading" @click="loadAdminMails(row.name)">看邮件</button>
+              <button class="btn" :disabled="state.loading" @click="adminShowCredential(row.id)">凭证</button>
               <button class="btn danger" :disabled="state.loading" @click="adminDeleteAddress(row.id)">删除</button>
             </div>
           </div>
@@ -693,6 +794,20 @@ onMounted(async () => {
                   title="邮件原文"
                 ></iframe>
               </div>
+              <section v-if="state.adminMailAttachmentsLoading || state.adminMailAttachments.length" class="attachments">
+                <div class="section-label">附件</div>
+                <div v-if="state.adminMailAttachmentsLoading" class="empty">正在解析附件</div>
+                <a
+                  v-for="attachment in state.adminMailAttachments"
+                  :key="attachment.id"
+                  class="attachment"
+                  :href="attachment.url"
+                  :download="attachment.filename"
+                >
+                  <span class="attachment-name">{{ attachment.filename }}</span>
+                  <span class="attachment-meta">{{ attachment.mimeType }} · {{ formatBytes(attachment.size) }}</span>
+                </a>
+              </section>
             </template>
             <div v-else class="empty-state">
               <strong>未选择邮件</strong>
@@ -735,7 +850,7 @@ onMounted(async () => {
                 </option>
               </select>
             </label>
-            <button class="btn primary" :disabled="state.loading" @click="createAddress">创建地址</button>
+            <button class="btn primary" :disabled="state.loading || !canCreateAddress" @click="createAddress">创建地址</button>
           </div>
           <label class="generated">
             <span class="input-label">邮箱地址</span>
@@ -828,6 +943,20 @@ onMounted(async () => {
               title="邮件原文"
             ></iframe>
           </article>
+          <section v-if="state.mailAttachmentsLoading || state.mailAttachments.length" class="attachments">
+            <div class="section-label">附件</div>
+            <div v-if="state.mailAttachmentsLoading" class="empty">正在解析附件</div>
+            <a
+              v-for="attachment in state.mailAttachments"
+              :key="attachment.id"
+              class="attachment"
+              :href="attachment.url"
+              :download="attachment.filename"
+            >
+              <span class="attachment-name">{{ attachment.filename }}</span>
+              <span class="attachment-meta">{{ attachment.mimeType }} · {{ formatBytes(attachment.size) }}</span>
+            </a>
+          </section>
         </template>
         <div v-else class="empty-state">
           <strong>暂无邮件</strong>
@@ -846,9 +975,12 @@ onMounted(async () => {
           <div class="search-wrap">
             <input v-model="state.search" class="field" placeholder="搜索发件人、主题或内容" />
           </div>
-          <button class="btn danger" :disabled="state.loading || !state.addressJwt" @click="deleteAddress">
-            删除地址
-          </button>
+          <div class="row-actions">
+            <button class="btn" :disabled="state.loading || !state.addressJwt" @click="clearInbox">清空</button>
+            <button class="btn danger" :disabled="state.loading || !state.addressJwt || !canDeleteAddress" @click="deleteAddress">
+              删除地址
+            </button>
+          </div>
         </div>
         <div class="message-list">
           <button
@@ -926,6 +1058,7 @@ onMounted(async () => {
                 </div>
                 <div class="row-actions">
                   <button class="btn" @click="loadAdminMails(row.name)">看邮件</button>
+                  <button class="btn" @click="adminShowCredential(row.id)">凭证</button>
                   <button class="btn danger" @click="adminDeleteAddress(row.id)">删除</button>
                 </div>
               </div>

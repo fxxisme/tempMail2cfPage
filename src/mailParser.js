@@ -132,3 +132,41 @@ export function parseMailItem(item) {
     message: parsed.html || item.message || '',
   }
 }
+
+function attachmentBytes(content) {
+  if (!content) return new Uint8Array()
+  if (content instanceof Uint8Array) return content
+  if (content instanceof ArrayBuffer) return new Uint8Array(content)
+  if (ArrayBuffer.isView(content)) {
+    return new Uint8Array(content.buffer, content.byteOffset, content.byteLength)
+  }
+  if (typeof content === 'string') {
+    return new TextEncoder().encode(content)
+  }
+  return new Uint8Array()
+}
+
+export async function parseMailAttachments(mail) {
+  if (!mail?.raw) return []
+  const parsed = await PostalMime.parse(mail.raw)
+  return (parsed.attachments || []).map((attachment, index) => {
+    const bytes = attachmentBytes(attachment.content)
+    const filename = attachment.filename || `attachment-${index + 1}`
+    const mimeType = attachment.mimeType || 'application/octet-stream'
+    const blob = new Blob([bytes], { type: mimeType })
+    return {
+      id: `${mail.id || 'mail'}-${index}`,
+      filename,
+      mimeType,
+      size: bytes.byteLength,
+      url: URL.createObjectURL(blob),
+    }
+  })
+}
+
+export function revokeAttachmentUrls(attachments) {
+  for (const attachment of attachments || []) {
+    if (attachment?.url) URL.revokeObjectURL(attachment.url)
+  }
+}
+import PostalMime from 'postal-mime'
