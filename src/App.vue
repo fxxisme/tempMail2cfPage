@@ -1,4 +1,28 @@
 <script setup>
+import {
+  AtSign,
+  BarChart3,
+  Clipboard,
+  Download,
+  Eye,
+  Home,
+  KeyRound,
+  List,
+  LockKeyhole,
+  LogIn,
+  LogOut,
+  Mail,
+  MailOpen,
+  Moon,
+  RefreshCw,
+  RotateCw,
+  Search,
+  Shield,
+  Sun,
+  Trash2,
+  X,
+} from '@lucide/vue'
+import { useClipboard } from '@vueuse/core'
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { createApi } from './api'
 import { parseMailAttachments, parseMailItem, revokeAttachmentUrls } from './mailParser'
@@ -68,6 +92,7 @@ const state = reactive({
 
 const inflight = new Set()
 const loadingCount = ref(0)
+const { copy: writeClipboard } = useClipboard({ legacy: true })
 
 const api = createApi(() => ({
   sitePassword: state.sitePassword,
@@ -181,6 +206,18 @@ function showToast(message) {
   window.setTimeout(() => {
     if (state.toast === message) state.toast = ''
   }, 1600)
+}
+
+async function copyText(text, successMessage) {
+  if (!text) return false
+  try {
+    await writeClipboard(text)
+    if (successMessage) showToast(successMessage)
+    return true
+  } catch {
+    window.alert(text)
+    return false
+  }
 }
 
 function setError(error) {
@@ -395,9 +432,7 @@ async function clearInbox() {
 
 async function copyAddress() {
   const text = state.draftAddress || state.address
-  if (!text) return
-  await navigator.clipboard.writeText(text)
-  showToast('邮箱地址已复制')
+  await copyText(text, '邮箱地址已复制')
 }
 
 function selectMail(mail) {
@@ -475,12 +510,7 @@ async function adminShowCredential(id) {
   const result = await run(() => api.adminShowAddressCredential(id), '地址凭证已读取')
   if (!result) return
   const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2)
-  try {
-    await navigator.clipboard.writeText(text)
-    showToast('地址凭证已复制')
-  } catch {
-    window.alert(text)
-  }
+  await copyText(text, '地址凭证已复制')
 }
 
 async function adminDeleteMail(id) {
@@ -629,6 +659,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <button class="btn theme-toggle" :title="`切换到${themeActionLabel}`" @click="toggleTheme">
+          <Sun v-if="state.theme === 'dark'" class="btn-icon" aria-hidden="true" />
+          <Moon v-else class="btn-icon" aria-hidden="true" />
           {{ themeActionLabel }}
         </button>
       </div>
@@ -641,7 +673,10 @@ onBeforeUnmount(() => {
         autocomplete="current-password"
         @keyup.enter="unlock"
       />
-      <button class="btn primary block" :disabled="state.loading" @click="unlock">进入邮箱</button>
+      <button class="btn primary block" :disabled="state.loading" @click="unlock">
+        <LogIn class="btn-icon" aria-hidden="true" />
+        进入邮箱
+      </button>
       <p v-if="state.error" class="error">{{ state.error }}</p>
     </div>
   </section>
@@ -657,10 +692,17 @@ onBeforeUnmount(() => {
       </div>
       <div class="top-actions">
         <button class="btn theme-toggle" :title="`切换到${themeActionLabel}`" @click="toggleTheme">
+          <Sun v-if="state.theme === 'dark'" class="btn-icon" aria-hidden="true" />
+          <Moon v-else class="btn-icon" aria-hidden="true" />
           {{ themeActionLabel }}
         </button>
-        <button class="btn" @click="goHome">返回邮箱</button>
-        <button class="btn icon" title="锁定" @click="lock">⌁</button>
+        <button class="btn" @click="goHome">
+          <Home class="btn-icon" aria-hidden="true" />
+          返回邮箱
+        </button>
+        <button class="btn icon" title="锁定" @click="lock">
+          <LockKeyhole class="btn-icon" aria-hidden="true" />
+        </button>
       </div>
     </header>
 
@@ -678,13 +720,28 @@ onBeforeUnmount(() => {
             placeholder="管理员密码"
             @keyup.enter="adminLogin"
           />
-          <button class="btn primary" :disabled="state.loading" @click="adminLogin">登录</button>
+          <button class="btn primary" :disabled="state.loading" @click="adminLogin">
+            <LogIn class="btn-icon" aria-hidden="true" />
+            登录
+          </button>
         </div>
         <div v-else class="detail-actions">
-          <button class="btn" :class="{ primary: state.adminTab === 'overview' }" @click="loadAdminOverview">统计</button>
-          <button class="btn" :class="{ primary: state.adminTab === 'addresses' }" @click="loadAdminAddresses">地址</button>
-          <button class="btn" :class="{ primary: state.adminTab === 'mails' }" @click="loadAdminMails()">邮件</button>
-          <button class="btn danger" @click="adminLogout">退出</button>
+          <button class="btn" :class="{ primary: state.adminTab === 'overview' }" @click="loadAdminOverview">
+            <BarChart3 class="btn-icon" aria-hidden="true" />
+            统计
+          </button>
+          <button class="btn" :class="{ primary: state.adminTab === 'addresses' }" @click="loadAdminAddresses">
+            <AtSign class="btn-icon" aria-hidden="true" />
+            地址
+          </button>
+          <button class="btn" :class="{ primary: state.adminTab === 'mails' }" @click="loadAdminMails()">
+            <Mail class="btn-icon" aria-hidden="true" />
+            邮件
+          </button>
+          <button class="btn danger" @click="adminLogout">
+            <LogOut class="btn-icon" aria-hidden="true" />
+            退出
+          </button>
         </div>
       </section>
 
@@ -708,7 +765,10 @@ onBeforeUnmount(() => {
       <section v-if="state.adminAuthed && state.adminTab === 'addresses'" class="admin-section">
         <div class="admin-filter">
           <input v-model="state.adminQuery" class="field" placeholder="搜索地址" @keyup.enter="loadAdminAddresses" />
-          <button class="btn" :disabled="state.loading" @click="loadAdminAddresses">查询</button>
+          <button class="btn" :disabled="state.loading" @click="loadAdminAddresses">
+            <Search class="btn-icon" aria-hidden="true" />
+            查询
+          </button>
         </div>
         <div class="table-list">
           <div v-for="row in state.adminAddresses" :key="row.id" class="table-row">
@@ -717,9 +777,18 @@ onBeforeUnmount(() => {
               <span>ID {{ row.id }} · 邮件 {{ row.mail_count || 0 }} · {{ formatDate(row.created_at) }}</span>
             </div>
             <div class="row-actions">
-              <button class="btn" :disabled="state.loading" @click="loadAdminMails(row.name)">看邮件</button>
-              <button class="btn" :disabled="state.loading" @click="adminShowCredential(row.id)">凭证</button>
-              <button class="btn danger" :disabled="state.loading" @click="adminDeleteAddress(row.id)">删除</button>
+              <button class="btn" :disabled="state.loading" @click="loadAdminMails(row.name)">
+                <Eye class="btn-icon" aria-hidden="true" />
+                看邮件
+              </button>
+              <button class="btn" :disabled="state.loading" @click="adminShowCredential(row.id)">
+                <KeyRound class="btn-icon" aria-hidden="true" />
+                凭证
+              </button>
+              <button class="btn danger" :disabled="state.loading" @click="adminDeleteAddress(row.id)">
+                <Trash2 class="btn-icon" aria-hidden="true" />
+                删除
+              </button>
             </div>
           </div>
           <div v-if="!state.adminAddresses.length" class="empty">暂无地址</div>
@@ -729,7 +798,10 @@ onBeforeUnmount(() => {
       <section v-if="state.adminAuthed && state.adminTab === 'mails'" class="admin-section admin-mail-workspace">
         <div class="admin-mail-toolbar">
           <input v-model="state.adminMailAddress" class="field" placeholder="按地址筛选" @keyup.enter="loadAdminMails()" />
-          <button class="btn" :disabled="state.loading" @click="loadAdminMails()">查询</button>
+          <button class="btn" :disabled="state.loading" @click="loadAdminMails()">
+            <Search class="btn-icon" aria-hidden="true" />
+            查询
+          </button>
         </div>
 
         <div class="admin-mail-grid">
@@ -780,6 +852,7 @@ onBeforeUnmount(() => {
                     </button>
                   </div>
                   <button class="btn danger" :disabled="state.loading" @click="adminDeleteMail(selectedAdminMail.id)">
+                    <Trash2 class="btn-icon" aria-hidden="true" />
                     删除邮件
                   </button>
                 </div>
@@ -804,7 +877,10 @@ onBeforeUnmount(() => {
                   :href="attachment.url"
                   :download="attachment.filename"
                 >
-                  <span class="attachment-name">{{ attachment.filename }}</span>
+                  <span class="attachment-name">
+                    <Download class="btn-icon" aria-hidden="true" />
+                    {{ attachment.filename }}
+                  </span>
                   <span class="attachment-meta">{{ attachment.mimeType }} · {{ formatBytes(attachment.size) }}</span>
                 </a>
               </section>
@@ -825,15 +901,22 @@ onBeforeUnmount(() => {
         <div class="mark"></div>
         <div>
           <strong>自用临时邮箱</strong>
-          <span>基于 Cloudflare 邮件系统</span>
+          <span>{{ state.address || '基于 Cloudflare 邮件系统' }}</span>
         </div>
       </div>
       <div class="top-actions">
         <button class="btn theme-toggle" :title="`切换到${themeActionLabel}`" @click="toggleTheme">
+          <Sun v-if="state.theme === 'dark'" class="btn-icon" aria-hidden="true" />
+          <Moon v-else class="btn-icon" aria-hidden="true" />
           {{ themeActionLabel }}
         </button>
-        <button class="btn desktop-only" :disabled="state.loading || !state.addressJwt" @click="fetchMails">刷新</button>
-        <button class="btn icon" title="锁定" @click="lock">⌁</button>
+        <button class="btn desktop-only" :disabled="state.loading || !state.addressJwt" @click="fetchMails">
+          <RefreshCw class="btn-icon" aria-hidden="true" />
+          刷新
+        </button>
+        <button class="btn icon" title="锁定" @click="lock">
+          <LockKeyhole class="btn-icon" aria-hidden="true" />
+        </button>
       </div>
     </header>
 
@@ -850,7 +933,10 @@ onBeforeUnmount(() => {
                 </option>
               </select>
             </label>
-            <button class="btn primary" :disabled="state.loading || !canCreateAddress" @click="createAddress">创建地址</button>
+            <button class="btn primary" :disabled="state.loading || !canCreateAddress" @click="createAddress">
+              <AtSign class="btn-icon" aria-hidden="true" />
+              创建地址
+            </button>
           </div>
           <label class="generated">
             <span class="input-label">邮箱地址</span>
@@ -866,8 +952,14 @@ onBeforeUnmount(() => {
             随机子域名
           </label>
           <div class="generated-actions">
-            <button @click="copyAddress">复制</button>
-            <button @click="generateDraftAddress()">换一个</button>
+            <button @click="copyAddress">
+              <Clipboard class="btn-icon" aria-hidden="true" />
+              复制
+            </button>
+            <button @click="generateDraftAddress()">
+              <RotateCw class="btn-icon" aria-hidden="true" />
+              换一个
+            </button>
           </div>
           <p v-if="state.addressPassword" class="hint">地址密码：{{ state.addressPassword }}</p>
         </div>
@@ -898,7 +990,7 @@ onBeforeUnmount(() => {
                 title="移除"
                 @click="removeLocalAddress(item.jwt)"
               >
-                ×
+                <X class="btn-icon" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -930,7 +1022,10 @@ onBeforeUnmount(() => {
                   原文
                 </button>
               </div>
-              <button class="btn danger" :disabled="state.loading" @click="deleteSelectedMail">删除邮件</button>
+              <button class="btn danger" :disabled="state.loading" @click="deleteSelectedMail">
+                <Trash2 class="btn-icon" aria-hidden="true" />
+                删除邮件
+              </button>
             </div>
           </div>
           <article class="mail-body">
@@ -953,7 +1048,10 @@ onBeforeUnmount(() => {
               :href="attachment.url"
               :download="attachment.filename"
             >
-              <span class="attachment-name">{{ attachment.filename }}</span>
+              <span class="attachment-name">
+                <Download class="btn-icon" aria-hidden="true" />
+                {{ attachment.filename }}
+              </span>
               <span class="attachment-meta">{{ attachment.mimeType }} · {{ formatBytes(attachment.size) }}</span>
             </a>
           </section>
@@ -972,17 +1070,31 @@ onBeforeUnmount(() => {
         }"
       >
         <div class="toolbar">
+          <div class="toolbar-title">
+            <strong>收件箱</strong>
+            <span>{{ filteredMails.length }} / {{ state.mails.length }} 封</span>
+          </div>
           <div class="search-wrap">
-            <input v-model="state.search" class="field" placeholder="搜索发件人、主题或内容" />
+            <Search class="search-icon" aria-hidden="true" />
+            <input v-model="state.search" class="field search-field" placeholder="搜索发件人、主题或内容" />
           </div>
           <div class="row-actions">
-            <button class="btn" :disabled="state.loading || !state.addressJwt" @click="clearInbox">清空</button>
+            <button class="btn" :disabled="state.loading || !state.addressJwt" @click="clearInbox">
+              <Trash2 class="btn-icon" aria-hidden="true" />
+              清空
+            </button>
             <button class="btn danger" :disabled="state.loading || !state.addressJwt || !canDeleteAddress" @click="deleteAddress">
+              <Shield class="btn-icon" aria-hidden="true" />
               删除地址
             </button>
           </div>
         </div>
         <div class="message-list">
+          <div class="message-head">
+            <span>发件人</span>
+            <span>主题</span>
+            <span>时间</span>
+          </div>
           <button
             v-for="mail in filteredMails"
             :key="mail.id"
@@ -990,12 +1102,8 @@ onBeforeUnmount(() => {
             :class="{ active: selectedMail?.id === mail.id }"
             @click="selectMail(mail)"
           >
-            <span class="dot"></span>
+            <span class="sender">{{ mail.source || '-' }}</span>
             <span class="message-main">
-              <span class="message-title">
-                <span class="sender">{{ mail.source || '-' }}</span>
-                <span class="tag">邮件</span>
-              </span>
               <span class="subject">{{ mail.subject || '(无主题)' }}</span>
               <span class="preview">{{ mail.text || mail.message || mail.raw || '' }}</span>
             </span>
@@ -1087,9 +1195,18 @@ onBeforeUnmount(() => {
     </main>
 
     <nav class="mobile-tabs">
-      <button :class="{ active: state.activeMobilePane === 'address' }" @click="state.activeMobilePane = 'address'">地址</button>
-      <button :class="{ active: state.activeMobilePane === 'content' }" @click="state.activeMobilePane = 'content'">内容</button>
-      <button :class="{ active: state.activeMobilePane === 'inbox' }" @click="state.activeMobilePane = 'inbox'">列表</button>
+      <button :class="{ active: state.activeMobilePane === 'address' }" @click="state.activeMobilePane = 'address'">
+        <AtSign class="tab-icon" aria-hidden="true" />
+        地址
+      </button>
+      <button :class="{ active: state.activeMobilePane === 'inbox' }" @click="state.activeMobilePane = 'inbox'">
+        <List class="tab-icon" aria-hidden="true" />
+        收件箱
+      </button>
+      <button :class="{ active: state.activeMobilePane === 'content' }" @click="state.activeMobilePane = 'content'">
+        <MailOpen class="tab-icon" aria-hidden="true" />
+        详情
+      </button>
     </nav>
   </section>
 
@@ -1097,6 +1214,8 @@ onBeforeUnmount(() => {
   <div v-if="state.toast" class="toast">{{ state.toast }}</div>
   <div v-if="state.error && state.unlocked" class="error-bar">
     <span>{{ state.error }}</span>
-    <button @click="state.error = ''">×</button>
+    <button @click="state.error = ''">
+      <X class="btn-icon" aria-hidden="true" />
+    </button>
   </div>
 </template>
