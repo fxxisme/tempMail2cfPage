@@ -1,5 +1,7 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import '@douyinfe/semi-ui/react19-adapter'
+import { createRoot } from 'react-dom/client'
+import { createElement } from 'react'
+import App from './App.jsx'
 import './styles.css'
 
-createApp(App).mount('#app')
+createRoot(document.getElementById('app')).render(createElement(App))

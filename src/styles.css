@@ -1066,7 +1066,9 @@ input:disabled {
 
 .admin-mail-workspace {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
+  min-height: 0;
 }
 
 .admin-mail-toolbar {
@@ -1082,7 +1084,9 @@ input:disabled {
 .admin-mail-grid {
   display: grid;
   grid-template-columns: 400px minmax(420px, 1fr);
-  min-height: 620px;
+  height: calc(100vh - 220px);
+  min-height: 420px;
+  max-height: 720px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
@@ -1096,7 +1100,8 @@ input:disabled {
 }
 
 .admin-mail-list {
-  overflow: auto;
+  min-height: 0;
+  overflow-y: auto;
   border-right: 1px solid var(--line);
 }
 
@@ -1104,11 +1109,12 @@ input:disabled {
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 0;
+  overflow: hidden;
 }
 
 .admin-mail-preview .mail-body {
   min-height: 0;
-  max-height: min(64vh, 640px);
+  max-height: none;
   overflow: auto;
 }
 
@@ -1346,7 +1352,9 @@ input:disabled {
 
   .admin-mail-grid {
     grid-template-columns: 1fr;
+    height: auto;
     min-height: auto;
+    max-height: none;
   }
 
   .admin-mail-list {
