@@ -480,6 +480,24 @@ input:disabled {
   border-radius: var(--radius-sm);
 }
 
+.current-address-info {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  display: grid;
+  gap: 6px;
+}
+
+.current-address-value {
+  color: var(--text);
+  font-family: "SF Mono", "Consolas", "Monaco", monospace;
+  font-size: 14px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
 .checkline {
   margin-top: 12px;
   color: var(--text-secondary);

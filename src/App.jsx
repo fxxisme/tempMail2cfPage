@@ -462,8 +462,6 @@ export default function App() {
     saveAddressJwt(result.jwt)
     setAppState({ addressPassword: result.password || '' })
     await refreshAddressSession()
-    // 创建完成后刷新草稿地址
-    generateDraftAddress(false)
   }
 
   async function switchLocalAddress(jwt) {
@@ -486,10 +484,7 @@ export default function App() {
     if (!getState().addressJwt) return
     const settings = await run(() => api.getAddressSettings())
     if (!settings) return
-    setAppState((current) => ({
-      address: settings.address || '',
-      draftAddress: settings.address || current.draftAddress,
-    }))
+    setAppState({ address: settings.address || '' })
     await fetchMails()
   }
 
@@ -542,7 +537,7 @@ export default function App() {
 
   async function copyAddress() {
     const current = getState()
-    await copyText(current.draftAddress || current.address, '邮箱地址已复制')
+    await copyText(current.address, '邮箱地址已复制')
   }
 
   function selectMail(mail) {
@@ -1063,9 +1058,9 @@ export default function App() {
                   ) : null}
                   <div className="generated-actions">
                     <Button className="btn" theme="solid" type="primary" icon={<IconAt />} disabled={state.loading || !createEnabled} onClick={createAddress}>创建地址</Button>
-                    <button onClick={copyAddress}>
+                    <button onClick={copyAddress} disabled={!state.address}>
                       <IconCopy />
-                      复制
+                      复制当前
                     </button>
                     <button onClick={() => generateDraftAddress()}>
                       <IconSync />
@@ -1073,6 +1068,12 @@ export default function App() {
                     </button>
                   </div>
                   {state.addressPassword ? <p className="hint">地址密码：{state.addressPassword}</p> : null}
+                  {state.address ? (
+                    <div className="current-address-info">
+                      <span className="input-label">当前地址</span>
+                      <div className="current-address-value">{state.address}</div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="address-list">
