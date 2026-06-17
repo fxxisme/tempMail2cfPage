@@ -40,7 +40,7 @@ const DEFAULT_SETTINGS = {
   prefix: '',
   minAddressLen: 1,
   maxAddressLen: 30,
-  needAuth: false,
+  needAuth: true,
   enableUserCreateEmail: true,
   enableUserDeleteEmail: false,
   disableAnonymousUserCreateEmail: false,
@@ -283,6 +283,8 @@ export default function App() {
         const { adminTab } = getState()
         if (adminTab === 'overview' || adminTab === 'addresses' || adminTab === 'mails') {
           setAppState({ adminAuthed: false })
+        } else {
+          setAppState({ unlocked: false, error: '访问密码已过期或未设置，请重新输入' })
         }
       }
       return null
@@ -703,7 +705,9 @@ export default function App() {
       }
       const settingsLoaded = await fetchOpenSettings()
       if (!settingsLoaded) {
-        if (alive) setAppState({ booted: true })
+        if (alive) {
+          setAppState({ booted: true, sitePassword: '', error: '无法连接到服务器，请输入页面密码后重试' })
+        }
         return
       }
       const afterSettings = getState()
