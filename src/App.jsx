@@ -451,6 +451,8 @@ export default function App() {
     saveAddressJwt(result.jwt)
     setAppState({ addressPassword: result.password || '' })
     await refreshAddressSession()
+    // 创建完成后刷新草稿地址
+    generateDraftAddress(false)
   }
 
   async function switchLocalAddress(jwt) {
@@ -1014,24 +1016,21 @@ export default function App() {
               <aside className={cls('pane sidebar', state.activeMobilePane === 'address' && 'mobile-active')}>
                 <div className="compose">
                   <h1>临时邮箱</h1>
-                  <div className="domain-row">
-                    <label className="field-group">
-                      <span className="input-label">选择域名</span>
-                      <Select
-                        className="field semi-select-field"
-                        value={state.selectedDomain}
-                        optionList={domainOptions}
-                        onChange={(value) => {
-                          const selectedDomain = String(value || '')
-                          setAppState({
-                            selectedDomain,
-                            draftAddress: buildDraftAddress(getState().settings, selectedDomain),
-                          })
-                        }}
-                      />
-                    </label>
-                    <Button className="btn" theme="solid" type="primary" icon={<IconAt />} disabled={state.loading || !createEnabled} onClick={createAddress}>创建地址</Button>
-                  </div>
+                  <label className="field-group">
+                    <span className="input-label">选择域名</span>
+                    <Select
+                      className="field semi-select-field"
+                      value={state.selectedDomain}
+                      optionList={domainOptions}
+                      onChange={(value) => {
+                        const selectedDomain = String(value || '')
+                        setAppState({
+                          selectedDomain,
+                          draftAddress: buildDraftAddress(getState().settings, selectedDomain),
+                        })
+                      }}
+                    />
+                  </label>
                   <label className="generated">
                     <span className="input-label">邮箱地址</span>
                     <Input
@@ -1052,6 +1051,7 @@ export default function App() {
                     </Checkbox>
                   ) : null}
                   <div className="generated-actions">
+                    <Button className="btn" theme="solid" type="primary" icon={<IconAt />} disabled={state.loading || !createEnabled} onClick={createAddress}>创建地址</Button>
                     <button onClick={copyAddress}>
                       <IconCopy />
                       复制
@@ -1065,17 +1065,8 @@ export default function App() {
                 </div>
 
                 <div className="address-list">
-                  <div className="section-label">地址</div>
-                  {state.address ? (
-                    <button className="address-item active">
-                      <span className="address-head">
-                        <span className="address-name">{state.address}</span>
-                        <span className="badge">{unreadCount}</span>
-                      </span>
-                    </button>
-                  ) : null}
-                  {state.localAddresses.length > 1 ? <div className="section-label history-label">历史地址</div> : null}
-                  {state.localAddresses.length > 1 ? (
+                  <div className="section-label">历史地址</div>
+                  {state.localAddresses.length > 0 ? (
                     <div className="history-list">
                       {state.localAddresses.map((item) => (
                         <div key={item.jwt} className={cls('history-row', item.jwt === state.addressJwt && 'active')}>
@@ -1089,8 +1080,9 @@ export default function App() {
                         </div>
                       ))}
                     </div>
-                  ) : null}
-                  {!state.address && !state.localAddresses.length ? <div className="empty">还没有创建地址</div> : null}
+                  ) : (
+                    <div className="empty">还没有创建地址</div>
+                  )}
                 </div>
               </aside>
 
