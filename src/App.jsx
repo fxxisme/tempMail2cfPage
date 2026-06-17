@@ -357,7 +357,7 @@ export default function App() {
         jwt,
         address: parseJwtAddress(jwt) || `invalid jwt [${jwt.slice(0, 12)}...]`,
         valid: !!parseJwtAddress(jwt),
-      })),
+      })).reverse(), // 倒序，最新的在前面
     })
   }
 
