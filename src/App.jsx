@@ -1060,14 +1060,14 @@ export default function App() {
                     </Checkbox>
                   ) : null}
                   <div className="generated-actions">
-                    <Button className="btn" theme="solid" type="primary" icon={<IconAt />} disabled={state.loading || !createEnabled} onClick={createAddress}>创建地址</Button>
-                    <button onClick={copyAddress} disabled={!state.address}>
-                      <IconCopy />
-                      复制当前
+                    <button className="action-btn primary" title="创建地址" disabled={state.loading || !createEnabled} onClick={createAddress}>
+                      <IconAt />
                     </button>
-                    <button onClick={() => generateDraftAddress()}>
+                    <button className="action-btn" title="复制当前地址" onClick={copyAddress} disabled={!state.address}>
+                      <IconCopy />
+                    </button>
+                    <button className="action-btn" title="换一个地址" onClick={() => generateDraftAddress()}>
                       <IconSync />
-                      换一个
                     </button>
                   </div>
                   {state.addressPassword ? <p className="hint">地址密码：{state.addressPassword}</p> : null}

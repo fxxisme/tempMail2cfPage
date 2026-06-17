@@ -451,24 +451,44 @@ input:disabled {
   gap: 8px;
 }
 
-.generated-actions button {
-  height: 40px;
+.action-btn {
+  height: 44px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  font-size: 20px;
   transition: all 0.2s ease;
 }
 
-.generated-actions button:hover {
+.action-btn:hover {
   background: var(--bg-secondary);
   border-color: var(--accent);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 0 0 0 var(--accent-glow);
+}
+
+.action-btn.primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--accent-glow), 0 0 0 4px var(--accent-glow);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .hint {
