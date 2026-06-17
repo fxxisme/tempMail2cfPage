@@ -163,7 +163,18 @@ function escapeHtml(value) {
 
 function originalMailSource(mail) {
   if (!mail) return ''
-  return mail.message || `<pre>${escapeHtml(mail.raw || mail.text || '')}</pre>`
+  if (mail.message) {
+    // 如果有 HTML 内容，清理多余换行
+    return mail.message
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+  }
+  // 纯文本内容，清理多余换行后包裹在 pre 中
+  const cleaned = (mail.raw || mail.text || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return `<pre style="white-space: pre-wrap; word-wrap: break-word; margin: 0; font-family: inherit; line-height: 1.6;">${escapeHtml(cleaned)}</pre>`
 }
 
 function formatBytes(value) {

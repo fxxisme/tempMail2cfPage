@@ -447,7 +447,7 @@ input:disabled {
 .generated-actions {
   margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
 }
 
@@ -771,7 +771,8 @@ input:disabled {
 /* 右侧详情 */
 .detail {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
 }
 
 .detail-head {
@@ -827,6 +828,7 @@ input:disabled {
   overflow-y: auto;
   line-height: 1.7;
   color: var(--text);
+  max-height: calc(100vh - 300px);
 }
 
 .text-mail,
@@ -840,6 +842,7 @@ input:disabled {
 .original-mail {
   width: 100%;
   min-height: 500px;
+  max-height: calc(100vh - 350px);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--input-bg);
