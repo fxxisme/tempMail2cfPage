@@ -315,13 +315,17 @@ export default function App() {
 
   async function fetchOpenSettings() {
     const settings = await run(() => api.getOpenSettings())
-    if (!settings) return
+    if (!settings) {
+      setAppState({ booted: true })
+      return false
+    }
     const normalized = normalizeOpenSettings(settings)
     const options = getDomainOptions(normalized)
     const selectedDomain = options[0]?.value || normalized.domains[0]?.value || ''
     const patch = { settings: normalized, selectedDomain }
     if (!getState().draftAddress) patch.draftAddress = buildDraftAddress(normalized, selectedDomain)
     setAppState(patch)
+    return true
   }
 
   function readLocalAddressCache() {
@@ -697,7 +701,11 @@ export default function App() {
         setAppState({ addressJwt })
         localStorage.setItem(STORAGE_KEYS.addressJwt, addressJwt)
       }
-      await fetchOpenSettings()
+      const settingsLoaded = await fetchOpenSettings()
+      if (!settingsLoaded) {
+        if (alive) setAppState({ booted: true })
+        return
+      }
       const afterSettings = getState()
       if (!afterSettings.settings.needAuth) {
         setAppState({ unlocked: true })
