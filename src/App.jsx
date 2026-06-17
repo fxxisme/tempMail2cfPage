@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { LEFT_WORDS, MIDDLE_WORDS, RIGHT_WORDS } from './nameWords.js'
 import { Button, Checkbox, Input, Select, Spin, Toast } from '@douyinfe/semi-ui'
 import {
   IconAt,
@@ -112,11 +113,9 @@ function canDeleteAddress(settings) {
 }
 
 function randomName(maxLength = 18) {
-  const left = ['silver', 'quiet', 'north', 'pixel', 'plain', 'green', 'metro', 'daily']
-  const middle = ['river', 'cloud', 'signal', 'field', 'relay', 'orbit', 'paper', 'stone']
-  const right = ['lake', 'box', 'desk', 'note', 'lane', 'mail', 'room', 'post']
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)]
   const suffix = String(Math.floor(100 + Math.random() * 900))
-  const value = `${left[Math.floor(Math.random() * left.length)]}${middle[Math.floor(Math.random() * middle.length)]}${right[Math.floor(Math.random() * right.length)]}${suffix}`
+  const value = `${pick(LEFT_WORDS)}${pick(MIDDLE_WORDS)}${pick(RIGHT_WORDS)}${suffix}`
   return value.slice(0, maxLength)
 }
 
