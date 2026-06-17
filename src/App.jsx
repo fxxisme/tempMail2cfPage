@@ -544,11 +544,6 @@ export default function App() {
     await loadMailAttachments(null)
   }
 
-  async function copyAddress() {
-    const current = getState()
-    await copyText(current.address, '邮箱地址已复制')
-  }
-
   function selectMail(mail) {
     setAppState({ selectedMailId: mail.id, activeMobilePane: 'content' })
     void loadMailAttachments(mail)
@@ -1075,20 +1070,11 @@ export default function App() {
                     <button className="action-btn primary" title="创建地址" disabled={state.loading || !createEnabled} onClick={createAddress}>
                       <IconAt />
                     </button>
-                    <button className="action-btn" title="复制当前地址" onClick={copyAddress} disabled={!state.address}>
-                      <IconCopy />
-                    </button>
                     <button className="action-btn" title="换一个地址" onClick={() => generateDraftAddress()}>
                       <IconSync />
                     </button>
                   </div>
                   {state.addressPassword ? <p className="hint">地址密码：{state.addressPassword}</p> : null}
-                  {state.address ? (
-                    <div className="current-address-info">
-                      <span className="input-label">当前地址</span>
-                      <div className="current-address-value">{state.address}</div>
-                    </div>
-                  ) : null}
                 </div>
 
                 <div className="address-list">
@@ -1100,6 +1086,9 @@ export default function App() {
                           <button className="history-address" onClick={() => switchLocalAddress(item.jwt)}>
                             <span className="address-name">{item.address}</span>
                             <span className="address-meta">{item.jwt === state.addressJwt ? '当前地址' : '点击切换'}</span>
+                          </button>
+                          <button className="history-copy" title="复制地址" onClick={() => copyText(item.address, '已复制')}>
+                            <IconCopy />
                           </button>
                           <button className="history-remove" disabled={item.jwt === state.addressJwt} title="移除" onClick={() => removeLocalAddress(item.jwt)}>
                             <IconClose />

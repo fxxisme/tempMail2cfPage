@@ -447,7 +447,7 @@ input:disabled {
 .generated-actions {
   margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
@@ -601,7 +601,7 @@ input:disabled {
 
 .history-row {
   display: grid;
-  grid-template-columns: 1fr 40px;
+  grid-template-columns: 1fr 36px 36px;
   gap: 4px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -629,6 +629,20 @@ input:disabled {
 .address-meta {
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+.history-copy {
+  width: 36px;
+  background: transparent;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-copy:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .history-remove {
