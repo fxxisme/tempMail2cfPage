@@ -350,7 +350,7 @@ input:disabled {
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: 320px 1fr 420px;
+  grid-template-columns: 380px 1fr 420px;
   gap: 1px;
   background: var(--line);
   overflow: hidden;
@@ -1154,13 +1154,13 @@ input:disabled {
 /* 响应式 */
 @media (max-width: 1200px) {
   .main {
-    grid-template-columns: 280px 1fr 380px;
+    grid-template-columns: 340px 1fr 380px;
   }
 }
 
 @media (max-width: 1024px) {
   .main {
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 340px 1fr;
   }
 
   .detail {
