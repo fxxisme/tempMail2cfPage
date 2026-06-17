@@ -73,7 +73,7 @@ function createInitialState() {
     enableRandomSubdomain: false,
     mails: [],
     selectedMailId: null,
-    mailViewMode: 'text',
+    mailViewMode: 'raw',
     mailAttachments: [],
     mailAttachmentsForId: null,
     mailAttachmentsLoading: false,
@@ -86,7 +86,7 @@ function createInitialState() {
     adminAddresses: [],
     adminMails: [],
     adminSelectedMailId: null,
-    adminMailViewMode: 'text',
+    adminMailViewMode: 'raw',
     adminMailAttachments: [],
     adminMailAttachmentsForId: null,
     adminMailAttachmentsLoading: false,
@@ -143,12 +143,15 @@ function mailBody(mail) {
 }
 
 function compactMailBody(mail) {
-  return String(mailBody(mail))
+  if (!mail) return ''
+  const text = mail.text || mail.message || mail.raw || ''
+  return String(text)
     .replace(/\r\n/g, '\n')
     .split('\n')
-    .map((line) => line.replace(/[ \t]+/g, ' ').trim())
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
     .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
+    .replace(/\n{2,}/g, '\n')
     .trim()
 }
 
@@ -974,8 +977,8 @@ export default function App() {
                             </div>
                             <div className="detail-actions">
                               <div className="segment" aria-label="邮件展示模式">
-                                <button className={cls(state.adminMailViewMode === 'text' && 'active')} onClick={() => setAppState({ adminMailViewMode: 'text' })}>纯文本</button>
                                 <button className={cls(state.adminMailViewMode === 'raw' && 'active')} onClick={() => setAppState({ adminMailViewMode: 'raw' })}>原文</button>
+                                <button className={cls(state.adminMailViewMode === 'text' && 'active')} onClick={() => setAppState({ adminMailViewMode: 'text' })}>纯文本</button>
                               </div>
                               <Button className="btn danger" type="danger" icon={<IconDelete />} disabled={state.loading} onClick={() => adminDeleteMail(selectedAdminMail.id)}>删除邮件</Button>
                             </div>
@@ -1110,8 +1113,8 @@ export default function App() {
                       </div>
                       <div className="detail-actions">
                         <div className="segment" aria-label="邮件展示模式">
-                          <button className={cls(state.mailViewMode === 'text' && 'active')} onClick={() => setAppState({ mailViewMode: 'text' })}>纯文本</button>
                           <button className={cls(state.mailViewMode === 'raw' && 'active')} onClick={() => setAppState({ mailViewMode: 'raw' })}>原文</button>
+                          <button className={cls(state.mailViewMode === 'text' && 'active')} onClick={() => setAppState({ mailViewMode: 'text' })}>纯文本</button>
                         </div>
                         <Button className="btn danger" type="danger" icon={<IconDelete />} disabled={state.loading} onClick={deleteSelectedMail}>删除邮件</Button>
                       </div>
