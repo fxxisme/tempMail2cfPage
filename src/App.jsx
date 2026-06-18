@@ -138,7 +138,12 @@ function formatDate(value) {
 
 function mailBody(mail) {
   if (!mail) return ''
-  return mail.text || ''
+  const text = mail.text || ''
+  const lines = String(text).split('\n')
+  return lines
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .join('\n')
 }
 
 function compactMailBody(mail) {

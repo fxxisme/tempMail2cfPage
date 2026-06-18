@@ -886,9 +886,20 @@ input:disabled {
 .text-mail,
 .compact-text-mail {
   font-family: inherit;
+  font-size: 15px;
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
+  text-align: center;
+  line-height: 2;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.text-mail p,
+.compact-text-mail p {
+  margin: 0;
+  padding: 0;
 }
 
 .original-mail {
