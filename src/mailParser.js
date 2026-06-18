@@ -117,8 +117,26 @@ function walkMime(raw, collector) {
   }
 }
 
-export function parseMailItem(item) {
+export async function parseMailItem(item) {
   if (!item?.raw) return item
+  try {
+    const parsedEmail = await PostalMime.parse(item.raw)
+    const parsedFrom = parsedEmail.from || {}
+    const source = parsedFrom.address && parsedFrom.name
+      ? `${parsedFrom.name} <${parsedFrom.address}>`
+      : parsedFrom.address || item.source
+
+    return {
+      ...item,
+      source,
+      subject: parsedEmail.subject || item.subject || '(无主题)',
+      message: parsedEmail.html || parsedEmail.text || item.raw,
+      text: parsedEmail.text || '',
+    }
+  } catch (error) {
+    console.error('Error parsing email with PostalMime', error)
+  }
+
   const { headerText } = splitHeaderAndBody(item.raw)
   const headers = parseHeaders(headerText)
   const parsed = { text: '', html: '' }
@@ -128,8 +146,8 @@ export function parseMailItem(item) {
     ...item,
     source: decodeMimeWords(headers.from) || item.source,
     subject: decodeMimeWords(headers.subject) || item.subject || '(无主题)',
-    text: parsed.text || stripHtml(parsed.html) || item.text || '',
-    message: parsed.html || item.message || '',
+    text: parsed.text || '',
+    message: parsed.html || parsed.text || item.raw,
   }
 }
 

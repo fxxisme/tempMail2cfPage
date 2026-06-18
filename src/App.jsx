@@ -138,12 +138,12 @@ function formatDate(value) {
 
 function mailBody(mail) {
   if (!mail) return ''
-  return mail.text || mail.message || mail.raw || ''
+  return mail.text || ''
 }
 
 function compactMailBody(mail) {
   if (!mail) return ''
-  const text = mail.text || mail.message || mail.raw || ''
+  const text = mail.text || ''
   return String(text)
     .replace(/\r\n/g, '\n')
     .split('\n')
@@ -500,7 +500,7 @@ export default function App() {
     if (!getState().addressJwt) return
     const result = await run(() => api.fetchMails(30, 0), notify ? '收件箱已刷新' : '', 'mails:current')
     if (!result) return
-    const mails = Array.isArray(result.results) ? result.results.map(parseMailItem) : []
+    const mails = Array.isArray(result.results) ? await Promise.all(result.results.map(parseMailItem)) : []
     const firstMail = mails[0] || null
     setAppState({ mails, selectedMailId: firstMail?.id || null })
     await loadMailAttachments(firstMail)
@@ -601,7 +601,7 @@ export default function App() {
       `admin:mails:${adminMailAddress}`,
     )
     if (result) {
-      const adminMails = Array.isArray(result.results) ? result.results.map(parseMailItem) : []
+      const adminMails = Array.isArray(result.results) ? await Promise.all(result.results.map(parseMailItem)) : []
       const firstMail = adminMails[0] || null
       setAppState({ adminMails, adminSelectedMailId: firstMail?.id || null })
       await loadAdminMailAttachments(firstMail)
