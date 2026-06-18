@@ -131,7 +131,7 @@ export async function parseMailItem(item) {
       source,
       subject: parsedEmail.subject || item.subject || '(无主题)',
       message: parsedEmail.html || parsedEmail.text || item.raw,
-      text: parsedEmail.text || '',
+      text: parsedEmail.text || item.text || stripHtml(parsedEmail.html) || '',
     }
   } catch (error) {
     console.error('Error parsing email with PostalMime', error)
@@ -146,7 +146,7 @@ export async function parseMailItem(item) {
     ...item,
     source: decodeMimeWords(headers.from) || item.source,
     subject: decodeMimeWords(headers.subject) || item.subject || '(无主题)',
-    text: parsed.text || '',
+    text: parsed.text || item.text || stripHtml(parsed.html) || '',
     message: parsed.html || parsed.text || item.raw,
   }
 }
