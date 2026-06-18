@@ -77,17 +77,32 @@ function decodeMimeWords(value) {
 }
 
 function stripHtml(html) {
-  return String(html || '')
+  // 块级元素闭合时插入换行，确保内容分行
+  const blockClose = /<\/(p|div|table|tr|td|th|ul|ol|li|h[1-6]|section|article|header|footer|center|blockquote|pre|dd|dt|dl|figcaption|figure|main|aside|details|summary|address)\s*>/gi
+  const result = String(html || '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<script[\s\S]*?<\/script>/gi, '')
+    // 将自闭合块元素转为换行
     .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
+    .replace(/<hr\s*\/?>/gi, '\n')
+    // 块级元素闭合时插入换行
+    .replace(blockClose, '\n')
+    // 移除所有剩余标签
     .replace(/<[^>]+>/g, '')
+    // 解码 HTML 实体
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
+    // 清理因 HTML 标签结构产生的多余空行：每行 trim 后合并连续空行
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .join('\n')
+    .replace(/\n{2,}/g, '\n')
     .trim()
+  return result
 }
 
 function walkMime(raw, collector) {
