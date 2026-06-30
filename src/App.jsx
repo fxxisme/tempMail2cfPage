@@ -284,8 +284,10 @@ export default function App() {
     } catch (error) {
       setError(error)
       if (error.status === 401) {
-        const { adminTab } = getState()
-        if (adminTab === 'overview' || adminTab === 'addresses' || adminTab === 'mails') {
+        const { adminTab, settings } = getState()
+        if (settings.disableAdminPasswordCheck) {
+          // 不需要密码校验模式下，忽略 401，不清除 adminAuthed
+        } else if (adminTab === 'overview' || adminTab === 'addresses' || adminTab === 'mails') {
           setAppState({ adminAuthed: false })
         } else {
           setAppState({ unlocked: false, error: '访问密码已过期或未设置，请重新输入' })
@@ -315,6 +317,7 @@ export default function App() {
       minAddressLen: raw?.minAddressLen || 1,
       maxAddressLen: raw?.maxAddressLen || 30,
       disableAnonymousUserCreateEmail: raw?.disableAnonymousUserCreateEmail === true,
+      disableAdminPasswordCheck: raw?.disableAdminPasswordCheck === true,
       randomSubdomainDomains: Array.isArray(raw?.randomSubdomainDomains) ? raw.randomSubdomainDomains : [],
     }
   }
@@ -559,6 +562,12 @@ export default function App() {
   }
 
   async function adminLogin() {
+    if (getState().settings.disableAdminPasswordCheck) {
+      localStorage.removeItem(STORAGE_KEYS.adminPassword)
+      setAppState({ adminAuthed: true, adminPassword: '' })
+      await loadAdminOverview()
+      return
+    }
     const password = getState().adminPassword.trim()
     if (!password) {
       setAppState({ error: '请输入管理员密码' })
@@ -572,6 +581,10 @@ export default function App() {
   }
 
   function adminLogout() {
+    if (getState().settings.disableAdminPasswordCheck) {
+      void loadAdminOverview()
+      return
+    }
     setAppState({ adminAuthed: false, adminPassword: '' })
     localStorage.removeItem(STORAGE_KEYS.adminPassword)
   }
@@ -724,8 +737,13 @@ export default function App() {
           localStorage.removeItem(STORAGE_KEYS.sitePassword)
         }
       }
-      if (getState().adminPassword) setAppState({ adminAuthed: true })
-      if (getState().isAdminRoute && getState().adminAuthed) {
+      if (getState().settings.disableAdminPasswordCheck) {
+        localStorage.removeItem(STORAGE_KEYS.adminPassword)
+        setAppState({ adminAuthed: true, adminPassword: '' })
+      } else if (getState().adminPassword) {
+        setAppState({ adminAuthed: true })
+      }
+      if (getState().isAdminRoute && (getState().adminAuthed || getState().settings.disableAdminPasswordCheck)) {
         await loadAdminOverview()
       }
       if (alive) setAppState({ booted: true })
@@ -859,7 +877,7 @@ export default function App() {
                   <h1>Admin</h1>
                   <p>管理地址、邮件和基础统计。</p>
                 </div>
-                {!state.adminAuthed ? (
+                {!state.adminAuthed && !state.settings.disableAdminPasswordCheck ? (
                   <div className="admin-login">
                     <Input
                       className="field"
@@ -885,7 +903,9 @@ export default function App() {
                     <Button className={cls('btn', state.adminTab === 'overview' && 'primary')} icon={<IconHistogram />} onClick={loadAdminOverview}>统计</Button>
                     <Button className={cls('btn', state.adminTab === 'addresses' && 'primary')} icon={<IconAt />} onClick={loadAdminAddresses}>地址</Button>
                     <Button className={cls('btn', state.adminTab === 'mails' && 'primary')} icon={<IconMail />} onClick={() => loadAdminMails()}>邮件</Button>
-                    <Button className="btn danger" type="danger" icon={<IconExit />} onClick={adminLogout}>退出</Button>
+                    {state.settings.disableAdminPasswordCheck ? null : (
+                      <Button className="btn danger" type="danger" icon={<IconExit />} onClick={adminLogout}>退出</Button>
+                    )}
                   </div>
                 )}
               </section>
