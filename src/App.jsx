@@ -305,7 +305,7 @@ export default function App() {
     const rawDomains = Array.isArray(raw?.domains) ? raw.domains : []
     const labels = Array.isArray(raw?.domainLabels) ? raw.domainLabels : []
     return {
-      ...getState().settings,
+      ...DEFAULT_SETTINGS,
       ...raw,
       domains: rawDomains.map((domain, index) => ({
         label: labels[index] || domain,
@@ -326,7 +326,7 @@ export default function App() {
     const settings = await run(() => api.getOpenSettings())
     if (!settings) {
       setAppState({ booted: true })
-      return false
+      return null
     }
     const normalized = normalizeOpenSettings(settings)
     const options = getDomainOptions(normalized)
@@ -334,7 +334,7 @@ export default function App() {
     const patch = { settings: normalized, selectedDomain }
     if (!getState().draftAddress) patch.draftAddress = buildDraftAddress(normalized, selectedDomain)
     setAppState(patch)
-    return true
+    return normalized
   }
 
   function readLocalAddressCache() {
@@ -715,19 +715,18 @@ export default function App() {
         setAppState({ addressJwt })
         localStorage.setItem(STORAGE_KEYS.addressJwt, addressJwt)
       }
-      const settingsLoaded = await fetchOpenSettings()
-      if (!settingsLoaded) {
+      const normalized = await fetchOpenSettings()
+      if (!normalized) {
         if (alive) {
           setAppState({ booted: true, sitePassword: '', error: '无法连接到服务器，请输入页面密码后重试' })
         }
         return
       }
-      const afterSettings = getState()
-      if (!afterSettings.settings.needAuth) {
+      if (!normalized.needAuth) {
         setAppState({ unlocked: true })
         await refreshAddressSession()
-      } else if (afterSettings.sitePassword) {
-        const cachedPassword = afterSettings.sitePassword
+      } else if (getState().sitePassword) {
+        const cachedPassword = getState().sitePassword
         const result = await run(() => api.siteLogin(cachedPassword))
         if (result !== null) {
           setAppState({ unlocked: true })
