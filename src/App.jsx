@@ -822,7 +822,7 @@ export default function App() {
             <div className="login-box">
               <div className="login-head">
                 <div className="brand">
-                  <div className="mark"></div>
+                  <div className="mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="3,6 12,12 21,6"/><line x1="3" y1="18" x2="7" y2="14"/></svg></div>
                   <div>
                     <strong>自用临时邮箱</strong>
                     <span>基于 Cloudflare 邮件系统</span>
@@ -857,7 +857,7 @@ export default function App() {
           <section className="admin-page">
             <header className="topbar">
               <div className="brand">
-                <div className="mark"></div>
+                <div className="mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="3,6 12,12 21,6"/><line x1="3" y1="18" x2="7" y2="14"/></svg></div>
                 <div>
                   <strong>自用临时邮箱 Admin</strong>
                   <span>基于 Cloudflare 邮件系统</span>
@@ -1038,7 +1038,7 @@ export default function App() {
           <section className="shell">
             <header className="topbar">
               <div className="brand">
-                <div className="mark"></div>
+                <div className="mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="3,6 12,12 21,6"/><line x1="3" y1="18" x2="7" y2="14"/></svg></div>
                 <div>
                   <strong>自用临时邮箱</strong>
                   <span>{state.address || '基于 Cloudflare 邮件系统'}</span>
