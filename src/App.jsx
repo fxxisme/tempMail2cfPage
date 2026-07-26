@@ -26,7 +26,22 @@ import {
 import { createApi } from './api'
 import { parseMailAttachments, parseMailItem, revokeAttachmentUrls } from './mailParser'
 
-const ADMIN_MAIL_PAGE_SIZE = 10
+const ADMIN_PAGE_SIZE = 10
+const MAIL_PREVIEW_MAX_LEN = 200
+
+// 列表预览文案：截断后再进 DOM，避免整封原文撑大节点
+function mailPreviewText(mail) {
+  const text = mail.text || mail.message || mail.raw || ''
+  return text.length > MAIL_PREVIEW_MAX_LEN ? `${text.slice(0, MAIL_PREVIEW_MAX_LEN)}…` : text
+}
+
+// 后端仅在 offset=0 时返回 count，翻页时沿用已知总数
+function resolveListTotal(count, offset, pageItemCount, prevTotal) {
+  const parsed = Number(count)
+  if (Number.isFinite(parsed) && parsed > 0) return parsed
+  if (offset === 0) return pageItemCount
+  return Math.max(prevTotal, offset + pageItemCount)
+}
 
 const STORAGE_KEYS = {
   sitePassword: 'tm2_site_password',
@@ -94,9 +109,15 @@ function createInitialState() {
     adminMailAttachmentsForId: null,
     adminMailAttachmentsLoading: false,
     adminQuery: '',
+    adminAddressQuery: '',
+    adminAddressPage: 1,
+    adminAddressTotal: 0,
+    adminAddressesLoading: false,
     adminMailAddress: '',
+    adminMailQuery: '',
     adminMailPage: 1,
     adminMailTotal: 0,
+    adminMailsLoading: false,
   }
 }
 
@@ -208,6 +229,9 @@ export default function App() {
   const stateRef = useRef(state)
   const inflightRef = useRef(new Set())
   const loadingCountRef = useRef(0)
+  // 列表请求序号：响应返回后校验，丢弃过期请求，避免快速翻页时旧数据覆盖新数据
+  const adminMailsReqRef = useRef(0)
+  const adminAddressesReqRef = useRef(0)
 
   function setAppState(patch) {
     setState((current) => {
@@ -245,7 +269,7 @@ export default function App() {
     state.mails.find((mail) => mail.id === state.selectedMailId) || state.mails[0] || null
   ), [state.mails, state.selectedMailId])
   const selectedAdminMail = useMemo(() => (
-    state.adminMails.find((mail) => mail.id === state.adminSelectedMailId) || state.adminMails[0] || null
+    state.adminMails.find((mail) => mail.id === state.adminSelectedMailId) || null
   ), [state.adminMails, state.adminSelectedMailId])
   const unreadCount = state.mails.length
   const themeActionLabel = state.theme === 'dark' ? '亮色' : '暗色'
@@ -273,14 +297,18 @@ export default function App() {
     setAppState({ error: error?.message || String(error || '未知错误') })
   }
 
-  async function run(task, successMessage = '', key = '') {
+  async function run(task, successMessage = '', key = '', { globalLoading = true } = {}) {
     if (key && inflightRef.current.has(key)) {
       showToast('正在查询，请稍候')
       return null
     }
     if (key) inflightRef.current.add(key)
-    loadingCountRef.current += 1
-    setAppState({ loading: true, error: '' })
+    if (globalLoading) {
+      loadingCountRef.current += 1
+      setAppState({ loading: true, error: '' })
+    } else {
+      setAppState({ error: '' })
+    }
     try {
       const result = await task()
       if (successMessage) showToast(successMessage)
@@ -300,8 +328,10 @@ export default function App() {
       return null
     } finally {
       if (key) inflightRef.current.delete(key)
-      loadingCountRef.current = Math.max(0, loadingCountRef.current - 1)
-      setAppState({ loading: loadingCountRef.current > 0 })
+      if (globalLoading) {
+        loadingCountRef.current = Math.max(0, loadingCountRef.current - 1)
+        setAppState({ loading: loadingCountRef.current > 0 })
+      }
     }
   }
 
@@ -603,48 +633,78 @@ export default function App() {
     if (stats) setAppState({ adminStats: stats })
   }
 
-  async function loadAdminAddresses() {
-    const query = getState().adminQuery
-    setAppState({ adminTab: 'addresses' })
-    const result = await run(
-      () => api.adminAddresses({ query, limit: 50, offset: 0 }),
-      '',
-      `admin:addresses:${query}`,
-    )
-    if (result) setAppState({ adminAddresses: Array.isArray(result.results) ? result.results : [] })
+  // 提交地址搜索：进入页签、点查询、按 Enter、清空输入时调用，总是回到第 1 页
+  async function loadAdminAddresses(query = getState().adminQuery) {
+    const submitted = (query || '').trim()
+    setAppState({ adminTab: 'addresses', adminQuery: submitted })
+    await fetchAdminAddresses(submitted, 1)
   }
 
-  async function loadAdminMails(address = getState().adminMailAddress, page = 1) {
-    const adminMailAddress = address || ''
-    const offset = (page - 1) * ADMIN_MAIL_PAGE_SIZE
-    setAppState({ adminTab: 'mails', adminMailAddress, adminMailPage: page })
-    const result = await run(
-      () => api.adminMails({ address: adminMailAddress, limit: ADMIN_MAIL_PAGE_SIZE, offset }),
-      '',
-      `admin:mails:${adminMailAddress}:${page}`,
-    )
-    if (result) {
+  async function fetchAdminAddresses(query, page) {
+    const offset = (page - 1) * ADMIN_PAGE_SIZE
+    const seq = ++adminAddressesReqRef.current
+    setAppState({ adminAddressesLoading: true })
+    try {
+      const result = await run(
+        () => api.adminAddresses({ query, limit: ADMIN_PAGE_SIZE, offset }),
+        '',
+        `admin:addresses:${query}:${page}`,
+        { globalLoading: false },
+      )
+      if (!result || seq !== adminAddressesReqRef.current) return
+      const adminAddresses = Array.isArray(result.results) ? result.results : []
+      setAppState({
+        adminAddresses,
+        adminAddressQuery: query,
+        adminAddressPage: page,
+        adminAddressTotal: resolveListTotal(result.count, offset, adminAddresses.length, getState().adminAddressTotal),
+      })
+    } finally {
+      if (seq === adminAddressesReqRef.current) setAppState({ adminAddressesLoading: false })
+    }
+  }
+
+  // 提交邮件筛选：进入页签、点查询、按 Enter、清空输入、地址页“看邮件”时调用，总是回到第 1 页
+  async function loadAdminMails(address = getState().adminMailAddress) {
+    const query = (address || '').trim()
+    setAppState({ adminTab: 'mails', adminMailAddress: query })
+    await fetchAdminMails(query, 1)
+  }
+
+  async function fetchAdminMails(query, page) {
+    const offset = (page - 1) * ADMIN_PAGE_SIZE
+    const seq = ++adminMailsReqRef.current
+    setAppState({ adminMailsLoading: true })
+    try {
+      const result = await run(
+        () => api.adminMails({ address: query, limit: ADMIN_PAGE_SIZE, offset }),
+        '',
+        `admin:mails:${query}:${page}`,
+        { globalLoading: false },
+      )
+      if (!result || seq !== adminMailsReqRef.current) return
       const adminMails = Array.isArray(result.results) ? await Promise.all(result.results.map(parseMailItem)) : []
-      const firstMail = adminMails[0] || null
-      // 后端仅在 offset=0 时返回 count，翻页时沿用已知总数
-      const count = Number(result.count)
-      let adminMailTotal
-      if (Number.isFinite(count) && count > 0) {
-        adminMailTotal = count
-      } else if (offset === 0) {
-        adminMailTotal = adminMails.length
-      } else {
-        adminMailTotal = Math.max(getState().adminMailTotal, offset + adminMails.length)
-      }
-      setAppState({ adminMails, adminMailTotal, adminSelectedMailId: firstMail?.id || null })
-      await loadAdminMailAttachments(firstMail)
+      // 邮件解析是异步的，写入前再校验一次请求是否仍然有效
+      if (seq !== adminMailsReqRef.current) return
+      setAppState({
+        adminMails,
+        adminMailQuery: query,
+        adminMailPage: page,
+        adminMailTotal: resolveListTotal(result.count, offset, adminMails.length, getState().adminMailTotal),
+        adminSelectedMailId: null,
+      })
+      await loadAdminMailAttachments(null)
+    } finally {
+      if (seq === adminMailsReqRef.current) setAppState({ adminMailsLoading: false })
     }
   }
 
   async function adminDeleteAddress(id) {
     if (!confirm('确定删除这个地址？')) return
     await run(() => api.adminDeleteAddress(id), '地址已删除')
-    await loadAdminAddresses()
+    const { adminAddresses, adminAddressPage, adminAddressQuery } = getState()
+    const page = adminAddresses.length <= 1 && adminAddressPage > 1 ? adminAddressPage - 1 : adminAddressPage
+    await fetchAdminAddresses(adminAddressQuery, page)
   }
 
   async function adminShowCredential(id) {
@@ -657,9 +717,9 @@ export default function App() {
   async function adminDeleteMail(id) {
     if (!confirm('确定删除这封邮件？')) return
     await run(() => api.adminDeleteMail(id), '邮件已删除')
-    const { adminMails, adminMailPage } = getState()
+    const { adminMails, adminMailPage, adminMailQuery } = getState()
     const page = adminMails.length <= 1 && adminMailPage > 1 ? adminMailPage - 1 : adminMailPage
-    await loadAdminMails(undefined, page)
+    await fetchAdminMails(adminMailQuery, page)
   }
 
   async function loadMailAttachments(mail) {
@@ -917,7 +977,7 @@ export default function App() {
                 ) : (
                   <div className="detail-actions">
                     <Button className={cls('btn', state.adminTab === 'overview' && 'primary')} icon={<IconHistogram />} onClick={loadAdminOverview}>统计</Button>
-                    <Button className={cls('btn', state.adminTab === 'addresses' && 'primary')} icon={<IconAt />} onClick={loadAdminAddresses}>地址</Button>
+                    <Button className={cls('btn', state.adminTab === 'addresses' && 'primary')} icon={<IconAt />} onClick={() => loadAdminAddresses()}>地址</Button>
                     <Button className={cls('btn', state.adminTab === 'mails' && 'primary')} icon={<IconMail />} onClick={() => loadAdminMails()}>邮件</Button>
                     {state.settings.disableAdminPasswordCheck ? null : (
                       <Button className="btn danger" type="danger" icon={<IconExit />} onClick={adminLogout}>退出</Button>
@@ -946,33 +1006,49 @@ export default function App() {
               ) : null}
 
               {state.adminAuthed && state.adminTab === 'addresses' ? (
-                <section className="admin-section">
+                <section className="admin-section admin-address-section">
                   <div className="admin-filter">
                     <Input
                       className="field"
                       placeholder="搜索地址"
                       value={state.adminQuery}
+                      showClear
                       onChange={(value) => setAppState({ adminQuery: value })}
-                      onKeyDown={(event) => onEnter(event, loadAdminAddresses)}
+                      onClear={() => loadAdminAddresses('')}
+                      onKeyDown={(event) => onEnter(event, () => loadAdminAddresses())}
                     />
-                    <Button className="btn" icon={<IconSearch />} disabled={state.loading} onClick={loadAdminAddresses}>查询</Button>
+                    <Button className="btn" icon={<IconSearch />} disabled={state.adminAddressesLoading} onClick={() => loadAdminAddresses()}>查询</Button>
                   </div>
-                  <div className="table-list">
-                    {state.adminAddresses.map((row) => (
-                      <div key={row.id} className="table-row">
-                        <div>
-                          <strong>{row.name}</strong>
-                          <span>ID {row.id} · 邮件 {row.mail_count || 0} · {formatDate(row.created_at)}</span>
+                  <Spin spinning={state.adminAddressesLoading} wrapperClassName="admin-list-spin">
+                    <div className="table-list">
+                      {state.adminAddresses.map((row) => (
+                        <div key={row.id} className="table-row">
+                          <div>
+                            <strong>{row.name}</strong>
+                            <span>ID {row.id} · 邮件 {row.mail_count || 0} · {formatDate(row.created_at)}</span>
+                          </div>
+                          <div className="row-actions">
+                            <Button className="btn" icon={<IconEyeOpened />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails(row.name)}>看邮件</Button>
+                            <Button className="btn" icon={<IconKey />} disabled={state.loading} onClick={() => adminShowCredential(row.id)}>凭证</Button>
+                            <Button className="btn danger" type="danger" icon={<IconDelete />} disabled={state.loading} onClick={() => adminDeleteAddress(row.id)}>删除</Button>
+                          </div>
                         </div>
-                        <div className="row-actions">
-                          <Button className="btn" icon={<IconEyeOpened />} disabled={state.loading} onClick={() => loadAdminMails(row.name)}>看邮件</Button>
-                          <Button className="btn" icon={<IconKey />} disabled={state.loading} onClick={() => adminShowCredential(row.id)}>凭证</Button>
-                          <Button className="btn danger" type="danger" icon={<IconDelete />} disabled={state.loading} onClick={() => adminDeleteAddress(row.id)}>删除</Button>
-                        </div>
-                      </div>
-                    ))}
-                    {!state.adminAddresses.length ? <div className="empty">暂无地址</div> : null}
-                  </div>
+                      ))}
+                      {!state.adminAddresses.length && !state.adminAddressesLoading ? <div className="empty">暂无地址</div> : null}
+                    </div>
+                  </Spin>
+                  {state.adminAddressTotal > ADMIN_PAGE_SIZE || state.adminAddressPage > 1 ? (
+                    <div className="admin-pagination">
+                      <Pagination
+                        size="small"
+                        showTotal
+                        total={state.adminAddressTotal}
+                        pageSize={ADMIN_PAGE_SIZE}
+                        currentPage={state.adminAddressPage}
+                        onPageChange={(page) => void fetchAdminAddresses(getState().adminAddressQuery, page)}
+                      />
+                    </div>
+                  ) : null}
                 </section>
               ) : null}
 
@@ -983,43 +1059,48 @@ export default function App() {
                       className="field"
                       placeholder="按地址筛选"
                       value={state.adminMailAddress}
+                      showClear
                       onChange={(value) => setAppState({ adminMailAddress: value })}
+                      onClear={() => loadAdminMails('')}
                       onKeyDown={(event) => onEnter(event, () => loadAdminMails())}
                     />
-                    <Button className="btn" icon={<IconSearch />} disabled={state.loading} onClick={() => loadAdminMails()}>查询</Button>
+                    <Button className="btn" icon={<IconSearch />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails()}>查询</Button>
                   </div>
 
                   <div className="admin-mail-grid">
                     <aside className="admin-mail-list">
                       <div className="admin-mail-scroll">
-                        {state.adminMails.map((mail) => (
-                          <button
-                            key={mail.id}
-                            className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
-                            onClick={() => selectAdminMail(mail)}
-                          >
-                            <span className="dot"></span>
-                            <span className="message-main">
-                              <span className="message-title">
-                                <span className="sender">{mail.source || '-'}</span>
-                                <span className="tag">邮件</span>
+                        <Spin spinning={state.adminMailsLoading} wrapperClassName="admin-list-spin">
+                          {state.adminMails.map((mail) => (
+                            <button
+                              key={mail.id}
+                              className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
+                              onClick={() => selectAdminMail(mail)}
+                            >
+                              <span className="dot"></span>
+                              <span className="message-main">
+                                <span className="message-title">
+                                  <span className="sender">{mail.source || '-'}</span>
+                                  <span className="tag" title={mail.address || ''}>{mail.address || '邮件'}</span>
+                                </span>
+                                <span className="subject">{mail.subject || '(无主题)'}</span>
+                                <span className="preview">{mailPreviewText(mail)}</span>
+                                <span className="time">{formatDate(mail.created_at)}</span>
                               </span>
-                              <span className="subject">{mail.subject || '(无主题)'}</span>
-                              <span className="preview">{mail.text || mail.message || mail.raw || ''}</span>
-                              <span className="time">{formatDate(mail.created_at)}</span>
-                            </span>
-                          </button>
-                        ))}
-                        {!state.adminMails.length ? <div className="empty">暂无邮件</div> : null}
+                            </button>
+                          ))}
+                          {!state.adminMails.length && !state.adminMailsLoading ? <div className="empty">暂无邮件</div> : null}
+                        </Spin>
                       </div>
-                      {state.adminMailTotal > ADMIN_MAIL_PAGE_SIZE || state.adminMailPage > 1 ? (
-                        <div className="admin-mail-pagination">
+                      {state.adminMailTotal > ADMIN_PAGE_SIZE || state.adminMailPage > 1 ? (
+                        <div className="admin-pagination">
                           <Pagination
                             size="small"
+                            showTotal
                             total={state.adminMailTotal}
-                            pageSize={ADMIN_MAIL_PAGE_SIZE}
+                            pageSize={ADMIN_PAGE_SIZE}
                             currentPage={state.adminMailPage}
-                            onPageChange={(page) => loadAdminMails(undefined, page)}
+                            onPageChange={(page) => void fetchAdminMails(getState().adminMailQuery, page)}
                           />
                         </div>
                       ) : null}
@@ -1225,7 +1306,7 @@ export default function App() {
                       <span className="sender">{mail.source || '-'}</span>
                       <span className="message-main">
                         <span className="subject">{mail.subject || '(无主题)'}</span>
-                        <span className="preview">{mail.text || mail.message || mail.raw || ''}</span>
+                        <span className="preview">{mailPreviewText(mail)}</span>
                       </span>
                       <span className="time">{formatDate(mail.created_at)}</span>
                     </button>

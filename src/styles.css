@@ -1144,12 +1144,44 @@ input:disabled {
   overflow-y: auto;
 }
 
-.admin-mail-pagination {
+.admin-pagination {
   flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   padding: 10px 12px;
   border-top: 1px solid var(--line);
+}
+
+/* Semi Spin 包裹层撑满，列表为空时加载动画也有落点 */
+.admin-list-spin {
+  min-height: 120px;
+}
+
+/* 地址页签：筛选栏和分页固定，中间列表框内滚动 */
+.admin-address-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.admin-address-section .admin-filter {
+  flex-shrink: 0;
+}
+
+.admin-address-section .admin-list-spin {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 管理端列表项的 tag 展示收件地址，可能较长，截断处理 */
+.admin-mail-list .tag {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: none;
 }
 
 /* 通知与错误 */
