@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LEFT_WORDS, MIDDLE_WORDS, RIGHT_WORDS } from './nameWords.js'
-import { Button, Checkbox, Input, Select, Spin, Toast } from '@douyinfe/semi-ui'
+import { Button, Checkbox, Input, Pagination, Select, Spin, Toast } from '@douyinfe/semi-ui'
 import {
   IconAt,
   IconClose,
@@ -25,6 +25,8 @@ import {
 } from '@douyinfe/semi-icons'
 import { createApi } from './api'
 import { parseMailAttachments, parseMailItem, revokeAttachmentUrls } from './mailParser'
+
+const ADMIN_MAIL_PAGE_SIZE = 10
 
 const STORAGE_KEYS = {
   sitePassword: 'tm2_site_password',
@@ -93,6 +95,8 @@ function createInitialState() {
     adminMailAttachmentsLoading: false,
     adminQuery: '',
     adminMailAddress: '',
+    adminMailPage: 1,
+    adminMailTotal: 0,
   }
 }
 
@@ -610,18 +614,22 @@ export default function App() {
     if (result) setAppState({ adminAddresses: Array.isArray(result.results) ? result.results : [] })
   }
 
-  async function loadAdminMails(address = getState().adminMailAddress) {
+  async function loadAdminMails(address = getState().adminMailAddress, page = 1) {
     const adminMailAddress = address || ''
-    setAppState({ adminTab: 'mails', adminMailAddress })
+    const offset = (page - 1) * ADMIN_MAIL_PAGE_SIZE
+    setAppState({ adminTab: 'mails', adminMailAddress, adminMailPage: page })
     const result = await run(
-      () => api.adminMails({ address: adminMailAddress, limit: 50, offset: 0 }),
+      () => api.adminMails({ address: adminMailAddress, limit: ADMIN_MAIL_PAGE_SIZE, offset }),
       '',
-      `admin:mails:${adminMailAddress}`,
+      `admin:mails:${adminMailAddress}:${page}`,
     )
     if (result) {
       const adminMails = Array.isArray(result.results) ? await Promise.all(result.results.map(parseMailItem)) : []
       const firstMail = adminMails[0] || null
-      setAppState({ adminMails, adminSelectedMailId: firstMail?.id || null })
+      const adminMailTotal = Number.isFinite(result.count) && result.count >= 0
+        ? result.count
+        : offset + adminMails.length
+      setAppState({ adminMails, adminMailTotal, adminSelectedMailId: firstMail?.id || null })
       await loadAdminMailAttachments(firstMail)
     }
   }
@@ -642,7 +650,9 @@ export default function App() {
   async function adminDeleteMail(id) {
     if (!confirm('确定删除这封邮件？')) return
     await run(() => api.adminDeleteMail(id), '邮件已删除')
-    await loadAdminMails()
+    const { adminMails, adminMailPage } = getState()
+    const page = adminMails.length <= 1 && adminMailPage > 1 ? adminMailPage - 1 : adminMailPage
+    await loadAdminMails(undefined, page)
   }
 
   async function loadMailAttachments(mail) {
@@ -993,6 +1003,17 @@ export default function App() {
                         </button>
                       ))}
                       {!state.adminMails.length ? <div className="empty">暂无邮件</div> : null}
+                      {state.adminMailTotal > ADMIN_MAIL_PAGE_SIZE ? (
+                        <div className="admin-mail-pagination">
+                          <Pagination
+                            size="small"
+                            total={state.adminMailTotal}
+                            pageSize={ADMIN_MAIL_PAGE_SIZE}
+                            currentPage={state.adminMailPage}
+                            onPageChange={(page) => loadAdminMails(undefined, page)}
+                          />
+                        </div>
+                      ) : null}
                     </aside>
 
                     <article className="admin-mail-preview">

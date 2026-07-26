@@ -1105,6 +1105,13 @@ input:disabled {
   grid-template-rows: auto 1fr;
 }
 
+.admin-mail-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+}
+
 /* 通知与错误 */
 .error {
   color: var(--danger);
