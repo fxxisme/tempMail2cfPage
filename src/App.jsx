@@ -626,9 +626,16 @@ export default function App() {
     if (result) {
       const adminMails = Array.isArray(result.results) ? await Promise.all(result.results.map(parseMailItem)) : []
       const firstMail = adminMails[0] || null
-      const adminMailTotal = Number.isFinite(result.count) && result.count >= 0
-        ? result.count
-        : offset + adminMails.length
+      // 后端仅在 offset=0 时返回 count，翻页时沿用已知总数
+      const count = Number(result.count)
+      let adminMailTotal
+      if (Number.isFinite(count) && count > 0) {
+        adminMailTotal = count
+      } else if (offset === 0) {
+        adminMailTotal = adminMails.length
+      } else {
+        adminMailTotal = Math.max(getState().adminMailTotal, offset + adminMails.length)
+      }
       setAppState({ adminMails, adminMailTotal, adminSelectedMailId: firstMail?.id || null })
       await loadAdminMailAttachments(firstMail)
     }
@@ -984,26 +991,28 @@ export default function App() {
 
                   <div className="admin-mail-grid">
                     <aside className="admin-mail-list">
-                      {state.adminMails.map((mail) => (
-                        <button
-                          key={mail.id}
-                          className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
-                          onClick={() => selectAdminMail(mail)}
-                        >
-                          <span className="dot"></span>
-                          <span className="message-main">
-                            <span className="message-title">
-                              <span className="sender">{mail.source || '-'}</span>
-                              <span className="tag">邮件</span>
+                      <div className="admin-mail-scroll">
+                        {state.adminMails.map((mail) => (
+                          <button
+                            key={mail.id}
+                            className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
+                            onClick={() => selectAdminMail(mail)}
+                          >
+                            <span className="dot"></span>
+                            <span className="message-main">
+                              <span className="message-title">
+                                <span className="sender">{mail.source || '-'}</span>
+                                <span className="tag">邮件</span>
+                              </span>
+                              <span className="subject">{mail.subject || '(无主题)'}</span>
+                              <span className="preview">{mail.text || mail.message || mail.raw || ''}</span>
+                              <span className="time">{formatDate(mail.created_at)}</span>
                             </span>
-                            <span className="subject">{mail.subject || '(无主题)'}</span>
-                            <span className="preview">{mail.text || mail.message || mail.raw || ''}</span>
-                            <span className="time">{formatDate(mail.created_at)}</span>
-                          </span>
-                        </button>
-                      ))}
-                      {!state.adminMails.length ? <div className="empty">暂无邮件</div> : null}
-                      {state.adminMailTotal > ADMIN_MAIL_PAGE_SIZE ? (
+                          </button>
+                        ))}
+                        {!state.adminMails.length ? <div className="empty">暂无邮件</div> : null}
+                      </div>
+                      {state.adminMailTotal > ADMIN_MAIL_PAGE_SIZE || state.adminMailPage > 1 ? (
                         <div className="admin-mail-pagination">
                           <Pagination
                             size="small"

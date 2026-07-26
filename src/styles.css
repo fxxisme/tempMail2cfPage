@@ -308,6 +308,7 @@ input:disabled {
 
 .topbar {
   height: 52px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -970,7 +971,8 @@ input:disabled {
 
 /* Admin 页面 */
 .admin-page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -978,14 +980,16 @@ input:disabled {
 
 .admin-shell {
   flex: 1;
+  min-height: 0;
   width: min(1200px, calc(100% - 48px));
   margin: 24px auto;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-content: start;
 }
 
 .admin-hero {
+  flex-shrink: 0;
   padding: 28px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -1013,6 +1017,8 @@ input:disabled {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--panel);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .metric-grid {
@@ -1077,10 +1083,11 @@ input:disabled {
 }
 
 .admin-mail-workspace {
+  flex: 1;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
-  min-height: 500px;
+  overflow: hidden;
 }
 
 .admin-mail-grid {
@@ -1091,21 +1098,54 @@ input:disabled {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
-  min-height: 600px;
+  min-height: 0;
 }
 
 .admin-mail-list,
 .admin-mail-preview {
   background: var(--panel);
+  min-height: 0;
+}
+
+.admin-mail-list {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-mail-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .admin-mail-preview {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.admin-mail-preview > .empty-state {
+  grid-row: 1 / -1;
+}
+
+.admin-mail-preview .mail-body {
+  max-height: none;
+}
+
+.admin-mail-preview .original-mail {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-mail-preview .attachments {
+  max-height: 180px;
+  overflow-y: auto;
 }
 
 .admin-mail-pagination {
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   padding: 10px 12px;
@@ -1294,6 +1334,22 @@ input:disabled {
     grid-template-columns: 1fr;
   }
 
+  .admin-page {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .admin-section {
+    overflow: visible;
+  }
+
+  .admin-mail-workspace {
+    flex: none;
+    overflow: visible;
+    grid-template-rows: auto auto;
+  }
+
   .admin-mail-grid {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -1302,6 +1358,14 @@ input:disabled {
   .admin-mail-list {
     max-height: 360px;
     border-bottom: 1px solid var(--line);
+  }
+
+  .admin-mail-preview {
+    overflow: visible;
+  }
+
+  .admin-mail-preview .mail-body {
+    max-height: calc(100vh - 280px);
   }
 
   .table-row {
