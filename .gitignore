@@ -4,3 +4,5 @@ dist
 .env.local
 .DS_Store
 .ai-context/
+stitch_disposable_mail_system
+temp

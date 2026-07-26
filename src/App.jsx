@@ -43,6 +43,13 @@ function resolveListTotal(count, offset, pageItemCount, prevTotal) {
   return Math.max(prevTotal, offset + pageItemCount)
 }
 
+function pageSummary(page, total) {
+  if (total <= 0) return '共 0 条'
+  const start = (page - 1) * ADMIN_PAGE_SIZE + 1
+  const end = Math.min(page * ADMIN_PAGE_SIZE, total)
+  return `第 ${start}-${end} 条 · 共 ${total} 条`
+}
+
 const STORAGE_KEYS = {
   sitePassword: 'tm2_site_password',
   addressJwt: 'tm2_address_jwt',
@@ -948,13 +955,11 @@ export default function App() {
             </header>
 
             <main className="admin-shell">
-              <section className="admin-hero">
-                <div className="admin-title">
-                  <h1>Admin</h1>
-                  <p>管理地址、邮件和基础统计。</p>
-                </div>
-                {!state.adminAuthed && !state.settings.disableAdminPasswordCheck ? (
-                  <div className="admin-login">
+              {!state.adminAuthed && !state.settings.disableAdminPasswordCheck ? (
+                <div className="admin-login-wrap">
+                  <div className="login-box">
+                    <h1>管理员登录</h1>
+                    <p>输入管理员密码，管理地址、邮件和统计。</p>
                     <Input
                       className="field"
                       type="password"
@@ -964,9 +969,7 @@ export default function App() {
                       onKeyDown={(event) => onEnter(event, adminLogin)}
                     />
                     <Button
-                      className="btn"
-                      theme="solid"
-                      type="primary"
+                      className="btn primary block admin-login-btn"
                       icon={<IconExit />}
                       disabled={state.loading}
                       onClick={adminLogin}
@@ -974,32 +977,46 @@ export default function App() {
                       登录
                     </Button>
                   </div>
-                ) : (
-                  <div className="detail-actions">
-                    <Button className={cls('btn', state.adminTab === 'overview' && 'primary')} icon={<IconHistogram />} onClick={loadAdminOverview}>统计</Button>
-                    <Button className={cls('btn', state.adminTab === 'addresses' && 'primary')} icon={<IconAt />} onClick={() => loadAdminAddresses()}>地址</Button>
-                    <Button className={cls('btn', state.adminTab === 'mails' && 'primary')} icon={<IconMail />} onClick={() => loadAdminMails()}>邮件</Button>
-                    {state.settings.disableAdminPasswordCheck ? null : (
-                      <Button className="btn danger" type="danger" icon={<IconExit />} onClick={adminLogout}>退出</Button>
-                    )}
-                  </div>
-                )}
-              </section>
+                </div>
+              ) : (
+              <div className="admin-layout">
+                <nav className="admin-nav">
+                  <div className="section-label">管理</div>
+                  <button className={cls('admin-nav-item', state.adminTab === 'overview' && 'active')} onClick={loadAdminOverview}><IconHistogram />统计</button>
+                  <button className={cls('admin-nav-item', state.adminTab === 'addresses' && 'active')} onClick={() => loadAdminAddresses()}><IconAt />地址</button>
+                  <button className={cls('admin-nav-item', state.adminTab === 'mails' && 'active')} onClick={() => loadAdminMails()}><IconMail />邮件</button>
+                  {state.settings.disableAdminPasswordCheck ? null : (
+                    <button className="admin-nav-item admin-nav-exit" onClick={adminLogout}><IconExit />退出登录</button>
+                  )}
+                </nav>
 
               {state.adminAuthed && state.adminTab === 'overview' ? (
                 <section className="admin-section">
+                  <header className="admin-page-head">
+                    <h1>统计概览</h1>
+                    <p>服务整体的地址与邮件规模。</p>
+                  </header>
                   <div className="metric-grid">
                     <div className="metric">
-                      <span>地址总数</span>
-                      <strong>{state.adminStats?.addressCount ?? '-'}</strong>
+                      <span className="metric-icon"><IconAt /></span>
+                      <div className="metric-body">
+                        <span>地址总数</span>
+                        <strong>{state.adminStats?.addressCount ?? '-'}</strong>
+                      </div>
                     </div>
                     <div className="metric">
-                      <span>7 天活跃地址</span>
-                      <strong>{state.adminStats?.activeAddressCount7days ?? '-'}</strong>
+                      <span className="metric-icon"><IconHistogram /></span>
+                      <div className="metric-body">
+                        <span>7 天活跃地址</span>
+                        <strong>{state.adminStats?.activeAddressCount7days ?? '-'}</strong>
+                      </div>
                     </div>
                     <div className="metric">
-                      <span>邮件总数</span>
-                      <strong>{state.adminStats?.mailCount ?? '-'}</strong>
+                      <span className="metric-icon"><IconMail /></span>
+                      <div className="metric-body">
+                        <span>邮件总数</span>
+                        <strong>{state.adminStats?.mailCount ?? '-'}</strong>
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -1007,31 +1024,45 @@ export default function App() {
 
               {state.adminAuthed && state.adminTab === 'addresses' ? (
                 <section className="admin-section admin-address-section">
+                  <header className="admin-page-head">
+                    <h1>地址管理</h1>
+                    <p>搜索、查看和删除系统内的邮箱地址。</p>
+                  </header>
                   <div className="admin-filter">
-                    <Input
-                      className="field"
-                      placeholder="搜索地址"
-                      value={state.adminQuery}
-                      showClear
-                      onChange={(value) => setAppState({ adminQuery: value })}
-                      onClear={() => loadAdminAddresses('')}
-                      onKeyDown={(event) => onEnter(event, () => loadAdminAddresses())}
-                    />
-                    <Button className="btn" icon={<IconSearch />} disabled={state.adminAddressesLoading} onClick={() => loadAdminAddresses()}>查询</Button>
+                    <div className="search-wrap">
+                      <IconSearch className="search-icon" />
+                      <Input
+                        className="field search-field"
+                        placeholder="搜索地址"
+                        value={state.adminQuery}
+                        showClear
+                        onChange={(value) => setAppState({ adminQuery: value })}
+                        onClear={() => loadAdminAddresses('')}
+                        onKeyDown={(event) => onEnter(event, () => loadAdminAddresses())}
+                      />
+                    </div>
+                    <Button className="btn" disabled={state.adminAddressesLoading} onClick={() => loadAdminAddresses()}>查询</Button>
                   </div>
                   <Spin spinning={state.adminAddressesLoading} wrapperClassName="admin-list-spin">
-                    <div className="table-list">
+                    <div className="addr-table">
+                      <div className="addr-row addr-head">
+                        <span>地址</span>
+                        <span>ID</span>
+                        <span>邮件数</span>
+                        <span>创建时间</span>
+                        <span className="addr-actions">操作</span>
+                      </div>
                       {state.adminAddresses.map((row) => (
-                        <div key={row.id} className="table-row">
-                          <div>
-                            <strong>{row.name}</strong>
-                            <span>ID {row.id} · 邮件 {row.mail_count || 0} · {formatDate(row.created_at)}</span>
-                          </div>
-                          <div className="row-actions">
+                        <div key={row.id} className="addr-row">
+                          <span className="addr-name" title={row.name}>{row.name}</span>
+                          <span>{row.id}</span>
+                          <span>{row.mail_count || 0}</span>
+                          <span>{formatDate(row.created_at)}</span>
+                          <span className="addr-actions">
                             <Button className="btn" icon={<IconEyeOpened />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails(row.name)}>看邮件</Button>
-                            <Button className="btn" icon={<IconKey />} disabled={state.loading} onClick={() => adminShowCredential(row.id)}>凭证</Button>
-                            <Button className="btn danger" type="danger" icon={<IconDelete />} disabled={state.loading} onClick={() => adminDeleteAddress(row.id)}>删除</Button>
-                          </div>
+                            <Button className="btn icon" icon={<IconKey />} title="复制凭证" disabled={state.loading} onClick={() => adminShowCredential(row.id)} />
+                            <Button className="btn icon danger" type="danger" icon={<IconDelete />} title="删除地址" disabled={state.loading} onClick={() => adminDeleteAddress(row.id)} />
+                          </span>
                         </div>
                       ))}
                       {!state.adminAddresses.length && !state.adminAddressesLoading ? <div className="empty">暂无地址</div> : null}
@@ -1039,9 +1070,9 @@ export default function App() {
                   </Spin>
                   {state.adminAddressTotal > ADMIN_PAGE_SIZE || state.adminAddressPage > 1 ? (
                     <div className="admin-pagination">
+                      <span className="page-summary">{pageSummary(state.adminAddressPage, state.adminAddressTotal)}</span>
                       <Pagination
                         size="small"
-                        showTotal
                         total={state.adminAddressTotal}
                         pageSize={ADMIN_PAGE_SIZE}
                         currentPage={state.adminAddressPage}
@@ -1054,17 +1085,24 @@ export default function App() {
 
               {state.adminAuthed && state.adminTab === 'mails' ? (
                 <section className="admin-section admin-mail-workspace">
+                  <header className="admin-page-head">
+                    <h1>邮件管理</h1>
+                    <p>按地址筛选并查看系统内的邮件。</p>
+                  </header>
                   <div className="admin-mail-toolbar">
-                    <Input
-                      className="field"
-                      placeholder="按地址筛选"
-                      value={state.adminMailAddress}
-                      showClear
-                      onChange={(value) => setAppState({ adminMailAddress: value })}
-                      onClear={() => loadAdminMails('')}
-                      onKeyDown={(event) => onEnter(event, () => loadAdminMails())}
-                    />
-                    <Button className="btn" icon={<IconSearch />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails()}>查询</Button>
+                    <div className="search-wrap">
+                      <IconSearch className="search-icon" />
+                      <Input
+                        className="field search-field"
+                        placeholder="按地址筛选"
+                        value={state.adminMailAddress}
+                        showClear
+                        onChange={(value) => setAppState({ adminMailAddress: value })}
+                        onClear={() => loadAdminMails('')}
+                        onKeyDown={(event) => onEnter(event, () => loadAdminMails())}
+                      />
+                    </div>
+                    <Button className="btn" disabled={state.adminMailsLoading} onClick={() => loadAdminMails()}>查询</Button>
                   </div>
 
                   <div className="admin-mail-grid">
@@ -1077,7 +1115,6 @@ export default function App() {
                               className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
                               onClick={() => selectAdminMail(mail)}
                             >
-                              <span className="dot"></span>
                               <span className="message-main">
                                 <span className="message-title">
                                   <span className="sender">{mail.source || '-'}</span>
@@ -1094,9 +1131,9 @@ export default function App() {
                       </div>
                       {state.adminMailTotal > ADMIN_PAGE_SIZE || state.adminMailPage > 1 ? (
                         <div className="admin-pagination">
+                          <span className="page-summary">{pageSummary(state.adminMailPage, state.adminMailTotal)}</span>
                           <Pagination
                             size="small"
-                            showTotal
                             total={state.adminMailTotal}
                             pageSize={ADMIN_PAGE_SIZE}
                             currentPage={state.adminMailPage}
@@ -1143,6 +1180,8 @@ export default function App() {
                   </div>
                 </section>
               ) : null}
+              </div>
+              )}
             </main>
           </section>
         ) : (
@@ -1165,7 +1204,17 @@ export default function App() {
             <main className="main">
               <aside className={cls('pane sidebar', state.activeMobilePane === 'address' && 'mobile-active')}>
                 <div className="compose">
-                  <h1>临时邮箱</h1>
+                  {state.address ? (
+                    <div className="address-card">
+                      <span className="input-label">当前临时地址</span>
+                      <div className="address-card-value" title={state.address}>{state.address}</div>
+                      <div className="address-card-actions">
+                        <Button className="btn primary" icon={<IconCopy />} onClick={() => copyText(state.address, '地址已复制')}>复制地址</Button>
+                        <Button className="btn icon" icon={<IconRefresh />} title="刷新收件箱" disabled={state.loading || !state.addressJwt} onClick={() => fetchMails()} />
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="section-label compose-label">新建地址</div>
                   <label className="field-group">
                     <span className="input-label">选择域名</span>
                     <Select
