@@ -163,9 +163,14 @@ function normalizeAddressName(name) {
 
 function formatDate(value) {
   if (!value) return '-'
-  const date = new Date(value)
+  // 后端常返回无时区的 UTC 时间（如 "2026-07-27 00:50:00"），
+  // 直接 new Date() 会按本地时区解析，东八区会少 8 小时。
+  const raw = String(value).trim()
+  const hasTz = /[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)
+  const normalized = hasTz ? raw : raw.replace(' ', 'T') + (raw.includes('T') || raw.includes(' ') ? 'Z' : '')
+  const date = new Date(normalized || raw)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString('zh-CN', { hour12: false })
+  return date.toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
 }
 
 function mailBody(mail) {
