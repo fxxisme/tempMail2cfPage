@@ -2,59 +2,62 @@
 
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
-  --bg-secondary: #ebf0f7;
+  --bg: #fafafa;
+  --bg-secondary: #f4f4f5;
   --panel: #ffffff;
-  --panel-raised: #fcfdfe;
-  --input-bg: #f8fafc;
-  --topbar: rgba(255, 255, 255, 0.88);
-  --text: #0f172a;
-  --text-secondary: #475569;
-  --muted: #94a3b8;
-  --line: #e2e8f0;
-  --line-strong: #cbd5e1;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
+  --panel-raised: #ffffff;
+  --input-bg: #f4f4f5;
+  --topbar: rgba(255, 255, 255, 0.75);
+  --text: #09090b;
+  --text-secondary: #71717a;
+  --muted: #a1a1aa;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.12);
+  --accent: #18181b;
+  --accent-hover: #27272a;
   --accent-text: #ffffff;
-  --accent-soft: #eff6ff;
-  --accent-glow: rgba(37, 99, 235, 0.16);
+  --accent-soft: #f4f4f5;
+  --accent-glow: rgba(24, 24, 27, 0.1);
   --danger: #ef4444;
   --danger-soft: #fef2f2;
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.05);
-  --shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
-  --radius: 10px;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --radius: 8px;
   --radius-sm: 6px;
   --radius-lg: 12px;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Menlo", monospace;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Menlo", monospace;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #090d16;
-  --bg-secondary: #0f172a;
-  --panel: #131d31;
-  --panel-raised: #18233a;
-  --input-bg: #0b1322;
-  --topbar: rgba(19, 29, 49, 0.88);
-  --text: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --muted: #64748b;
-  --line: #1e293b;
-  --line-strong: #334155;
-  --accent: #3b82f6;
-  --accent-hover: #60a5fa;
-  --accent-text: #ffffff;
-  --accent-soft: #172554;
-  --accent-glow: rgba(59, 130, 246, 0.22);
-  --danger: #f87171;
+  --bg: #000000;
+  --bg-secondary: #0a0a0a;
+  --panel: #121212;
+  --panel-raised: #18181b;
+  --input-bg: #18181b;
+  --topbar: rgba(0, 0, 0, 0.75);
+  --text: #fafafa;
+  --text-secondary: #a1a1aa;
+  --muted: #71717a;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.15);
+  --accent: #ffffff;
+  --accent-hover: #e4e4e7;
+  --accent-text: #000000;
+  --accent-soft: #27272a;
+  --accent-glow: rgba(255, 255, 255, 0.15);
+  --danger: #ef4444;
   --danger-soft: #271418;
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.8);
 }
 
 * {
@@ -111,8 +114,10 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 a:focus-visible {
-  outline: 3px solid var(--accent-glow);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--accent-glow);
 }
 
 button:disabled,
@@ -175,16 +180,17 @@ input:disabled {
   min-height: 40px;
   padding: 0 16px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel);
+  border: none;
+  background: var(--bg-secondary);
   color: var(--text);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+  transition: all 0.15s ease;
 }
 
 .btn:hover {
@@ -194,7 +200,6 @@ input:disabled {
 
 .btn.primary {
   background: var(--accent);
-  border-color: var(--accent);
   color: var(--accent-text);
 }
 
@@ -236,7 +241,9 @@ input:disabled {
   color: var(--text);
   outline: none;
   font-size: 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .field:hover {
@@ -362,12 +369,13 @@ body {
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(280px, 320px) minmax(360px, 1fr) minmax(360px, 0.95fr);
+  grid-template-columns: minmax(280px, 320px) minmax(360px, 1fr) minmax(
+      360px,
+      0.95fr
+    );
   grid-template-areas: "sidebar inbox detail";
-  gap: 1px;
-  background: var(--line);
+  background: var(--bg);
   overflow: hidden;
-  min-height: 0;
 }
 
 .pane {
@@ -382,7 +390,9 @@ body {
 /* 左侧边栏 */
 .sidebar {
   grid-area: sidebar;
-  background: var(--panel);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--line);
+  z-index: 2;
 }
 
 .compose {
@@ -429,7 +439,9 @@ body {
   font-family: var(--font-mono);
   font-size: 14px;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .address-input:hover {
@@ -468,7 +480,9 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .action-btn:hover {
@@ -504,14 +518,13 @@ body {
 /* 当前地址卡：侧栏主角，大地址 + 复制主操作 */
 .address-card {
   margin-bottom: 18px;
-  padding: 16px;
+  padding: 18px;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
-  box-shadow: var(--shadow-xs);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .address-card-value {
@@ -562,7 +575,9 @@ body {
   border: 1px solid transparent;
   text-align: left;
   color: var(--text);
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .address-item:hover {
@@ -681,6 +696,8 @@ body {
   display: grid;
   grid-template-rows: auto 1fr;
   background: var(--bg);
+  border-right: 1px solid var(--line);
+  z-index: 1;
 }
 
 .toolbar {
@@ -769,50 +786,45 @@ body {
   width: 100%;
   min-height: 68px;
   padding: 12px 14px;
-  margin-bottom: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
+  margin-bottom: 2px;
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--text);
   text-align: left;
   display: grid;
   grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr) 80px;
   gap: 12px;
   align-items: center;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.15s ease;
   position: relative;
-  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  border: none;
 }
 
 .message:hover {
-  border-color: var(--line-strong);
-  background: var(--panel);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-secondary);
 }
 
 .message.active {
-  border-color: var(--accent);
   background: var(--accent-soft);
-  box-shadow: 0 0 0 1px var(--accent), var(--shadow-sm);
 }
 
 .inbox .message {
   min-height: 66px;
   padding: 12px 14px;
-  margin-bottom: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
   align-items: center;
+  border-radius: var(--radius);
+  border: none;
 }
 
 .inbox .message:hover {
-  border-color: var(--line-strong);
+  background: var(--bg-secondary);
 }
 
 .inbox .message.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), var(--shadow-sm);
+  background: var(--accent-soft);
+  box-shadow: none;
 }
 
 /* 管理端列表每项只包含 message-main，避免沿用收件箱的三列轨道后被压缩。 */
@@ -964,9 +976,9 @@ body {
   line-height: 1.8;
   color: var(--text);
   background: var(--input-bg);
-  padding: 20px 24px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
+  padding: 24px 28px;
+  border-radius: var(--radius-lg);
+  border: none;
 }
 
 .text-mail p,
@@ -1131,7 +1143,9 @@ body {
   font-size: 13px;
   font-weight: 500;
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .admin-nav-item:hover {
@@ -1530,7 +1544,9 @@ body {
     font-size: 11px;
     font-weight: 600;
     border-top: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
   }
 
   .mobile-tabs button.active {
@@ -1701,13 +1717,8 @@ body {
   display: inline-flex;
 }
 
-:root[data-theme="dark"] .address-card,
 :root[data-theme="dark"] .metric-icon {
   border-color: var(--line-strong);
-}
-
-:root[data-theme="dark"] .address-card {
-  border-left-color: var(--accent);
 }
 
 .detail-actions {
