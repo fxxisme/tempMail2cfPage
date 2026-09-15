@@ -1,3 +1,18 @@
+let postalMimePromise
+
+async function getPostalMime() {
+  if (!postalMimePromise) {
+    postalMimePromise = import('postal-mime')
+      .then((module) => module.default || module)
+      .catch((error) => {
+        // A failed chunk request must not prevent later mail parsing attempts from retrying.
+        postalMimePromise = undefined
+        throw error
+      })
+  }
+  return postalMimePromise
+}
+
 function splitHeaderAndBody(raw) {
   const normalized = String(raw || '').replace(/\r\n/g, '\n')
   const index = normalized.indexOf('\n\n')
@@ -135,6 +150,7 @@ function walkMime(raw, collector) {
 export async function parseMailItem(item) {
   if (!item?.raw) return item
   try {
+    const PostalMime = await getPostalMime()
     const parsedEmail = await PostalMime.parse(item.raw)
     const parsedFrom = parsedEmail.from || {}
     const source = parsedFrom.address && parsedFrom.name
@@ -181,6 +197,7 @@ function attachmentBytes(content) {
 
 export async function parseMailAttachments(mail) {
   if (!mail?.raw) return []
+  const PostalMime = await getPostalMime()
   const parsed = await PostalMime.parse(mail.raw)
   return (parsed.attachments || []).map((attachment, index) => {
     const bytes = attachmentBytes(attachment.content)
@@ -202,4 +219,3 @@ export function revokeAttachmentUrls(attachments) {
     if (attachment?.url) URL.revokeObjectURL(attachment.url)
   }
 }
-import PostalMime from 'postal-mime'

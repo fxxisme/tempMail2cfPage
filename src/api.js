@@ -16,6 +16,7 @@ export async function hashPassword(value) {
 export function createApi(getAuth) {
   async function request(path, options = {}) {
     const auth = getAuth()
+    const method = options.method || 'GET'
     const headers = {
       'Content-Type': 'application/json',
       'x-lang': 'zh',
@@ -30,7 +31,7 @@ export function createApi(getAuth) {
     if (addressJwt) headers.Authorization = `Bearer ${addressJwt}`
 
     const response = await fetch(`${API_BASE}${path}`, {
-      method: options.method || 'GET',
+      method,
       headers: {
         ...headers,
         ...(options.headers || {}),
@@ -47,12 +48,16 @@ export function createApi(getAuth) {
     }
 
     if (response.status >= 300) {
-      const message = typeof data === 'string' ? data : JSON.stringify(data)
+      const message = typeof data === 'string' ? data : data ? JSON.stringify(data) : ''
       const error = new Error(`[${response.status}] ${message || '请求失败'}`)
       error.status = response.status
       throw error
     }
 
+    // 204 No Content 或 DELETE 等接口成功时返回空响应体
+    if ((data === null || data === '') && (response.status === 204 || (method !== 'GET' && method !== 'HEAD'))) {
+      return { ok: true }
+    }
     return data
   }
 

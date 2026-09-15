@@ -161,16 +161,69 @@ function normalizeAddressName(name) {
   return name.trim().replace(/[^a-zA-Z0-9]/g, '')
 }
 
-function formatDate(value) {
-  if (!value) return '-'
+function parseServerDate(value) {
+  if (!value) return null
+  if (typeof value === 'number') {
+    const d = new Date(value < 1e11 ? value * 1000 : value)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  const raw = String(value).trim()
+  if (/^\d+$/.test(raw)) {
+    const num = Number(raw)
+    const d = new Date(num < 1e11 ? num * 1000 : num)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
   // 后端常返回无时区的 UTC 时间（如 "2026-07-27 00:50:00"），
   // 直接 new Date() 会按本地时区解析，东八区会少 8 小时。
-  const raw = String(value).trim()
   const hasTz = /[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)
   const normalized = hasTz ? raw : raw.replace(' ', 'T') + (raw.includes('T') || raw.includes(' ') ? 'Z' : '')
   const date = new Date(normalized || raw)
-  if (Number.isNaN(date.getTime())) return value
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function formatDate(value) {
+  if (!value) return '-'
+  const date = parseServerDate(value)
+  if (!date) return value
   return date.toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
+}
+
+function formatListDate(value) {
+  if (!value) return '-'
+  const date = parseServerDate(value)
+  if (!date) return value
+  const now = new Date()
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+
+  if (isToday) {
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Shanghai',
+    })
+  }
+
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  const isYesterday =
+    date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate()
+
+  if (isYesterday) {
+    return '昨天'
+  }
+
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Shanghai',
+  })
 }
 
 function mailBody(mail) {
@@ -911,7 +964,7 @@ export default function App() {
             <div className="login-box">
               <div className="login-head">
                 <div className="brand">
-                  <div className="mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="3,6 12,12 21,6"/><line x1="3" y1="18" x2="7" y2="14"/></svg></div>
+                  <div className="mark"><IconMail /></div>
                   <div>
                     <strong>自用临时邮箱</strong>
                     <span>基于 Cloudflare 邮件系统</span>
@@ -946,7 +999,7 @@ export default function App() {
           <section className="admin-page">
             <header className="topbar">
               <div className="brand">
-                <div className="mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="3,6 12,12 21,6"/><line x1="3" y1="18" x2="7" y2="14"/></svg></div>
+                <div className="mark"><IconMail /></div>
                 <div>
                   <strong>自用临时邮箱 Admin</strong>
                   <span>基于 Cloudflare 邮件系统</span>
@@ -1177,6 +1230,7 @@ export default function App() {
                         </>
                       ) : (
                         <div className="empty-state">
+                          <IconInbox className="empty-icon" />
                           <strong>未选择邮件</strong>
                           <span>从左侧列表选择一封邮件查看内容。</span>
                         </div>
@@ -1193,7 +1247,7 @@ export default function App() {
           <section className="shell">
             <header className="topbar">
               <div className="brand">
-                <div className="mark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><polyline points="3,6 12,12 21,6"/><line x1="3" y1="18" x2="7" y2="14"/></svg></div>
+                <div className="mark"><IconMail /></div>
                 <div>
                   <strong>自用临时邮箱</strong>
                   <span>{state.address || '基于 Cloudflare 邮件系统'}</span>
@@ -1255,12 +1309,21 @@ export default function App() {
                     </Checkbox>
                   ) : null}
                   <div className="generated-actions">
-                    <button className="action-btn primary" title="创建地址" disabled={state.loading || !createEnabled} onClick={createAddress}>
-                      <IconAt />
-                    </button>
-                    <button className="action-btn" title="换一个地址" onClick={() => generateDraftAddress()}>
-                      <IconSync />
-                    </button>
+                    <Button
+                      className="btn primary generate-btn"
+                      icon={<IconAt />}
+                      disabled={state.loading || !createEnabled}
+                      onClick={createAddress}
+                    >
+                      创建地址
+                    </Button>
+                    <Button
+                      className="btn generate-btn"
+                      icon={<IconSync />}
+                      onClick={() => generateDraftAddress()}
+                    >
+                      随机切换
+                    </Button>
                   </div>
                   {state.addressPassword ? <p className="hint">地址密码：{state.addressPassword}</p> : null}
                 </div>
@@ -1319,6 +1382,7 @@ export default function App() {
                   </>
                 ) : (
                   <div className="empty-state">
+                    <IconInbox className="empty-icon" />
                     <strong>暂无邮件</strong>
                     <span>收到新邮件后会显示在这里。</span>
                   </div>
@@ -1362,7 +1426,7 @@ export default function App() {
                         <span className="subject">{mail.subject || '(无主题)'}</span>
                         <span className="preview">{mailPreviewText(mail)}</span>
                       </span>
-                      <span className="time">{formatDate(mail.created_at)}</span>
+                      <span className="time" title={formatDate(mail.created_at)}>{formatListDate(mail.created_at)}</span>
                     </button>
                   ))}
                   {!filteredMails.length ? <div className="empty">没有匹配的邮件</div> : null}
