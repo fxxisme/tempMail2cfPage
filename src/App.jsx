@@ -289,6 +289,25 @@ function cls(...items) {
   return items.filter(Boolean).join(' ')
 }
 
+function getAvatarColor(name = '') {
+  const colors = [
+    'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)',
+    'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+    'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+    'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+    'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function getAvatarChar(name = '') {
+  const clean = name.trim().replace(/^["']/, '')
+  return (clean[0] || 'M').toUpperCase()
+}
+
 export default function App() {
   const [state, setState] = useState(createInitialState)
   const stateRef = useRef(state)
@@ -1205,10 +1224,10 @@ export default function App() {
                       {selectedAdminMail ? (
                         <>
                           <div className="detail-head">
-                            <h2 className="detail-subject">{selectedAdminMail.subject || '(无主题)'}</h2>
+                            <h2 className="detail-subject" title={selectedAdminMail.subject || '(无主题)'}>{selectedAdminMail.subject || '(无主题)'}</h2>
                             <div className="detail-meta">
-                              <span>来自 {selectedAdminMail.source || '-'}</span>
-                              <span>发送到 {selectedAdminMail.address || '-'}</span>
+                              <span title={selectedAdminMail.source || '-'}>来自 {selectedAdminMail.source || '-'}</span>
+                              <span title={selectedAdminMail.address || '-'}>发送到 {selectedAdminMail.address || '-'}</span>
                               <span>{formatDate(selectedAdminMail.created_at)}</span>
                             </div>
                             <div className="detail-actions">
@@ -1230,7 +1249,9 @@ export default function App() {
                         </>
                       ) : (
                         <div className="empty-state">
-                          <IconInbox className="empty-icon" />
+                          <div className="empty-state-avatar">
+                            <IconInbox />
+                          </div>
                           <strong>未选择邮件</strong>
                           <span>从左侧列表选择一封邮件查看内容。</span>
                         </div>
@@ -1265,7 +1286,13 @@ export default function App() {
                 <div className="compose">
                   {state.address ? (
                     <div className="address-card">
-                      <span className="input-label">当前临时地址</span>
+                      <div className="address-card-header">
+                        <span className="address-card-label">
+                          <span className="live-indicator"></span>
+                          当前临时地址
+                        </span>
+                        <span className="badge">{filteredMails.length} 封邮件</span>
+                      </div>
                       <div className="address-card-value" title={state.address}>{state.address}</div>
                       <div className="address-card-actions">
                         <Button className="btn primary" icon={<IconCopy />} onClick={() => copyText(state.address, '地址已复制')}>复制地址</Button>
@@ -1357,10 +1384,10 @@ export default function App() {
                 {selectedMail ? (
                   <>
                     <div className="detail-head">
-                      <h2 className="detail-subject">{selectedMail.subject || '(无主题)'}</h2>
+                      <h2 className="detail-subject" title={selectedMail.subject || '(无主题)'}>{selectedMail.subject || '(无主题)'}</h2>
                       <div className="detail-meta">
-                        <span>来自 {selectedMail.source || '-'}</span>
-                        <span>发送到 {selectedMail.address || state.address || '-'}</span>
+                        <span title={selectedMail.source || '-'}>来自 {selectedMail.source || '-'}</span>
+                        <span title={selectedMail.address || state.address || '-'}>发送到 {selectedMail.address || state.address || '-'}</span>
                         <span>{formatDate(selectedMail.created_at)}</span>
                       </div>
                       <div className="detail-actions">
@@ -1382,9 +1409,11 @@ export default function App() {
                   </>
                 ) : (
                   <div className="empty-state">
-                    <IconInbox className="empty-icon" />
-                    <strong>暂无邮件</strong>
-                    <span>收到新邮件后会显示在这里。</span>
+                    <div className="empty-state-avatar">
+                      <IconInbox />
+                    </div>
+                    <strong>未选择邮件</strong>
+                    <span>从左侧邮件列表中点击一封邮件，在这里阅读详情。</span>
                   </div>
                 )}
               </section>
@@ -1410,26 +1439,34 @@ export default function App() {
                   </div>
                 </div>
                 <div className="message-list">
-                  <div className="message-head">
-                    <span>发件人</span>
-                    <span>主题</span>
-                    <span>时间</span>
-                  </div>
                   {filteredMails.map((mail) => (
                     <button
                       key={mail.id}
                       className={cls('message', selectedMail?.id === mail.id && 'active')}
                       onClick={() => selectMail(mail)}
                     >
-                      <span className="sender">{mail.source || '-'}</span>
-                      <span className="message-main">
-                        <span className="subject">{mail.subject || '(无主题)'}</span>
+                      <div className="sender-avatar" style={{ background: getAvatarColor(mail.source || mail.address || '') }}>
+                        {getAvatarChar(mail.source || mail.address || '')}
+                      </div>
+                      <div className="message-main">
+                        <div className="message-top">
+                          <span className="sender" title={mail.source || '-'}>{mail.source || '-'}</span>
+                          <span className="time" title={formatDate(mail.created_at)}>{formatListDate(mail.created_at)}</span>
+                        </div>
+                        <span className="subject" title={mail.subject || '(无主题)'}>{mail.subject || '(无主题)'}</span>
                         <span className="preview">{mailPreviewText(mail)}</span>
-                      </span>
-                      <span className="time" title={formatDate(mail.created_at)}>{formatListDate(mail.created_at)}</span>
+                      </div>
                     </button>
                   ))}
-                  {!filteredMails.length ? <div className="empty">没有匹配的邮件</div> : null}
+                  {!filteredMails.length ? (
+                    <div className="empty-state">
+                      <div className="empty-state-avatar">
+                        <IconInbox />
+                      </div>
+                      <strong>收件箱空空如也</strong>
+                      <span>发送邮件到当前地址，邮件将在数秒内实时显示。</span>
+                    </div>
+                  ) : null}
                 </div>
               </section>
             </main>
