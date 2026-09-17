@@ -972,7 +972,20 @@ export default function App() {
   }
 
   if (!state.booted) {
-    return <div className="boot">加载中</div>
+    return (
+      <div className="boot-screen">
+        <div className="boot-card">
+          <div className="boot-spinner-wrap">
+            <div className="boot-spinner" />
+            <div className="boot-icon"><IconMail /></div>
+          </div>
+          <div className="boot-content">
+            <h3 className="boot-title">TempMail Pro</h3>
+            <p className="boot-desc">正在加载系统资源，请稍候...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
