@@ -287,6 +287,7 @@ button:disabled {
   font-size: 13.5px;
   outline: none;
   transition: all var(--transition-fast);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .field:hover {
@@ -365,6 +366,7 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 38vw;
+  width: 100%;
 }
 
 .top-actions {
@@ -418,7 +420,7 @@ button:disabled {
   border-bottom: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px; /* 增加一点间距 */
 }
 
 /* 当前临时地址重点展示卡 (Hero Address Card) */
@@ -435,6 +437,13 @@ button:disabled {
   gap: 10px;
   position: relative;
   overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.address-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .address-card::before {
@@ -452,6 +461,16 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
 }
 
 .address-card-label {
@@ -484,8 +503,9 @@ button:disabled {
   background: var(--bg-canvas);
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  border: 1px dashed var(--panel-border);
+  border: 1px dashed var(--primary-border);
   user-select: all;
+  text-align: center;
 }
 
 .address-card-actions {
@@ -531,6 +551,7 @@ button:disabled {
   font-size: 13.5px;
   outline: none;
   transition: all var(--transition-fast);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .address-input:hover {
@@ -550,7 +571,7 @@ button:disabled {
 
 .generated-actions {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 4px;
 }
@@ -603,6 +624,7 @@ button:disabled {
   overflow: hidden;
   align-items: center;
   transition: all var(--transition-fast);
+  width: 100%;
 }
 
 .history-row:hover {
@@ -626,7 +648,9 @@ button:disabled {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  width: 100%;
   overflow: hidden;
+  align-items: flex-start;
 }
 
 .history-address .address-name {
@@ -637,11 +661,18 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  width: 100%;
+  display: block;
 }
 
 .history-address .address-meta {
   color: var(--text-muted);
   font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  display: block;
 }
 
 .history-copy,
@@ -743,6 +774,7 @@ button:disabled {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
+  overflow-x: hidden; /* 防止横向滚动 */
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -769,6 +801,7 @@ button:disabled {
   box-shadow: var(--shadow-xs);
   position: relative;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .message:hover {
@@ -800,13 +833,15 @@ button:disabled {
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
 }
 
+/* 中间收件箱列表溢出处理 */
 .message-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  overflow: hidden;
+  overflow: hidden; /* 确保不撑破父级 */
+  width: 100%;
 }
 
 .message-top {
@@ -815,6 +850,18 @@ button:disabled {
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
+  width: 100%; /* 保证占满宽度 */
+  overflow: hidden;
+}
+
+.message-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .sender {
@@ -825,6 +872,8 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  flex: 1; /* 让 sender 占据剩余空间，配合 ellipsis */
+  display: block;
 }
 
 .time {
@@ -833,6 +882,7 @@ button:disabled {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+  margin-left: 8px; /* 增加一点间距 */
 }
 
 .subject {
@@ -843,6 +893,8 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  width: 100%; /* 保证占满宽度截断 */
+  display: block;
 }
 
 .preview {
@@ -851,7 +903,10 @@ button:disabled {
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 两行截断 */
+  -webkit-box-orient: vertical;
+  white-space: normal; /* 覆盖原来的 nowrap */
   min-width: 0;
 }
 
@@ -881,6 +936,10 @@ button:disabled {
   color: var(--text-main);
   word-break: break-word;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .detail-meta {
@@ -903,6 +962,14 @@ button:disabled {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.detail-meta span:last-child {
+  flex: 0 0 auto;
 }
 
 .detail-actions {
@@ -910,6 +977,8 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .segment {
@@ -946,6 +1015,10 @@ button:disabled {
   line-height: 1.75;
   color: var(--text-main);
   background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .text-mail,
@@ -962,16 +1035,20 @@ button:disabled {
   padding: 22px 26px;
   border-radius: var(--radius);
   border: 1px solid var(--panel-border);
+  flex: 1;
+  overflow-y: auto;
 }
 
 .original-mail {
   width: 100%;
   min-height: 520px;
+  height: 100%;
   max-height: 100%;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
   background: #ffffff;
   box-shadow: var(--shadow-xs);
+  flex: 1;
 }
 
 /* 附件区域 */
@@ -1009,11 +1086,18 @@ button:disabled {
 
 .attachment-name {
   min-width: 0;
+  flex: 1;
   font-weight: 600;
   font-size: 13px;
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-name span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1040,6 +1124,7 @@ button:disabled {
   padding: 48px 24px;
   text-align: center;
   color: var(--text-muted);
+  width: 100%;
 }
 
 .empty-state {
@@ -1238,6 +1323,17 @@ button:disabled {
   margin: 0 0 16px;
 }
 
+.admin-filter {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-mail-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  gap: 12px;
+}
+
 .admin-page-head h1 {
   margin: 0 0 4px;
   font-size: 18px;
@@ -1257,7 +1353,9 @@ button:disabled {
   border-radius: var(--radius);
   background: var(--panel);
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-xs);
 }
 
@@ -1326,11 +1424,17 @@ button:disabled {
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--panel);
+  min-width: 600px; /* 保证表格有一个最小宽度 */
+}
+
+.addr-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
 }
 
 .addr-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(80px, 0.6fr) 80px 160px auto;
+  grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.6fr) 80px 160px auto;
   gap: 12px;
   align-items: center;
   padding: 12px 16px;
@@ -1363,6 +1467,7 @@ button:disabled {
   white-space: nowrap;
   font-weight: 600;
   color: var(--text-main);
+  display: block;
 }
 
 .addr-actions {
@@ -1370,17 +1475,20 @@ button:disabled {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .admin-mail-workspace {
   flex: 1;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   overflow: hidden;
+  height: 100%;
 }
 
 .admin-mail-grid {
+  flex: 1;
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: 1px;
@@ -1407,6 +1515,7 @@ button:disabled {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden; /* 防止横向溢出 */
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -1425,16 +1534,35 @@ button:disabled {
 
 .admin-mail-preview .mail-body {
   max-height: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
 }
 
 .admin-mail-preview .original-mail {
   display: block;
   height: 100%;
+  width: 100%;
   min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  flex: 1;
 }
 
 .admin-mail-preview .attachments {
   max-height: 180px;
+  overflow-y: auto;
+}
+
+.admin-mail-preview .compact-text-mail {
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+  flex: 1;
   overflow-y: auto;
 }
 
@@ -1464,6 +1592,7 @@ button:disabled {
   flex-direction: column;
   gap: 14px;
   overflow: hidden;
+  height: 100%;
 }
 
 .admin-address-section .admin-filter {
@@ -1472,11 +1601,20 @@ button:disabled {
 
 .admin-address-section .admin-page-head {
   margin: 0;
+  flex-shrink: 0;
 }
 
 .admin-address-section .admin-list-spin {
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-address-section .addr-table-wrapper {
+  overflow-x: auto;
   overflow-y: auto;
+  flex: 1;
 }
 
 .admin-mail-list .tag {
@@ -1490,6 +1628,8 @@ button:disabled {
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   font-size: 11px;
+  flex-shrink: 0; /* 防止被挤压变形 */
+  display: inline-block;
 }
 
 /* ========================================================
@@ -1584,7 +1724,7 @@ button:disabled {
 
 @media (max-width: 1200px) {
   .main {
-    grid-template-columns: 290px 340px minmax(360px, 1fr);
+    grid-template-columns: 280px 320px minmax(360px, 1fr);
   }
 }
 
@@ -1597,7 +1737,7 @@ button:disabled {
   .detail {
     position: fixed;
     inset: 58px 0 0 auto;
-    width: min(540px, 100%);
+    width: min(600px, 100%);
     z-index: 60;
     border-left: 1px solid var(--panel-border);
     background: var(--panel);
@@ -1721,6 +1861,7 @@ button:disabled {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    height: auto;
   }
 
   .admin-nav {
@@ -1753,6 +1894,7 @@ button:disabled {
     grid-template-columns: minmax(0, 1fr) auto;
     row-gap: 8px;
     padding: 10px 12px;
+    align-items: flex-start;
   }
 
   .addr-head,
@@ -1765,6 +1907,11 @@ button:disabled {
   .addr-actions {
     grid-column: 1 / -1;
     justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .addr-table {
+    min-width: unset;
   }
 
   .admin-page,
@@ -1774,10 +1921,15 @@ button:disabled {
     overflow: visible;
   }
 
+  .admin-address-section {
+    height: auto;
+  }
+
   .admin-mail-workspace {
     flex: none;
     overflow: visible;
     grid-template-rows: auto auto;
+    height: auto;
   }
 
   .admin-mail-grid {

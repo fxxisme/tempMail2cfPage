@@ -960,9 +960,9 @@ export default function App() {
             href={attachment.url}
             download={attachment.filename}
           >
-            <span className="attachment-name">
+            <span className="attachment-name" title={attachment.filename}>
               <IconDownload />
-              {attachment.filename}
+              <span>{attachment.filename}</span>
             </span>
             <span className="attachment-meta">{attachment.mimeType} · {formatBytes(attachment.size)}</span>
           </a>
@@ -1121,28 +1121,30 @@ export default function App() {
                     <Button className="btn" disabled={state.adminAddressesLoading} onClick={() => loadAdminAddresses()}>查询</Button>
                   </div>
                   <Spin spinning={state.adminAddressesLoading} wrapperClassName="admin-list-spin">
-                    <div className="addr-table">
-                      <div className="addr-row addr-head">
-                        <span>地址</span>
-                        <span>ID</span>
-                        <span>邮件数</span>
-                        <span>创建时间</span>
-                        <span className="addr-actions">操作</span>
-                      </div>
-                      {state.adminAddresses.map((row) => (
-                        <div key={row.id} className="addr-row">
-                          <span className="addr-name" title={row.name}>{row.name}</span>
-                          <span>{row.id}</span>
-                          <span>{row.mail_count || 0}</span>
-                          <span>{formatDate(row.created_at)}</span>
-                          <span className="addr-actions">
-                            <Button className="btn" icon={<IconEyeOpened />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails(row.name)}>看邮件</Button>
-                            <Button className="btn icon" icon={<IconKey />} title="复制凭证" disabled={state.loading} onClick={() => adminShowCredential(row.id)} />
-                            <Button className="btn icon danger" type="danger" icon={<IconDelete />} title="删除地址" disabled={state.loading} onClick={() => adminDeleteAddress(row.id)} />
-                          </span>
+                    <div className="addr-table-wrapper">
+                      <div className="addr-table">
+                        <div className="addr-row addr-head">
+                          <span>地址</span>
+                          <span>ID</span>
+                          <span>邮件数</span>
+                          <span>创建时间</span>
+                          <span className="addr-actions">操作</span>
                         </div>
-                      ))}
-                      {!state.adminAddresses.length && !state.adminAddressesLoading ? <div className="empty">暂无地址</div> : null}
+                        {state.adminAddresses.map((row) => (
+                          <div key={row.id} className="addr-row">
+                            <span className="addr-name" title={row.name}>{row.name}</span>
+                            <span>{row.id}</span>
+                            <span>{row.mail_count || 0}</span>
+                            <span>{formatDate(row.created_at)}</span>
+                            <span className="addr-actions">
+                              <Button className="btn" icon={<IconEyeOpened />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails(row.name)}>看邮件</Button>
+                              <Button className="btn icon" icon={<IconKey />} title="复制凭证" disabled={state.loading} onClick={() => adminShowCredential(row.id)} />
+                              <Button className="btn icon danger" type="danger" icon={<IconDelete />} title="删除地址" disabled={state.loading} onClick={() => adminDeleteAddress(row.id)} />
+                            </span>
+                          </div>
+                        ))}
+                        {!state.adminAddresses.length && !state.adminAddressesLoading ? <div className="empty">暂无地址</div> : null}
+                      </div>
                     </div>
                   </Spin>
                   {state.adminAddressTotal > ADMIN_PAGE_SIZE || state.adminAddressPage > 1 ? (
@@ -1194,10 +1196,10 @@ export default function App() {
                             >
                               <span className="message-main">
                                 <span className="message-title">
-                                  <span className="sender">{mail.source || '-'}</span>
+                                  <span className="sender" title={mail.source || ''}>{mail.source || '-'}</span>
                                   <span className="tag" title={mail.address || ''}>{mail.address || '邮件'}</span>
                                 </span>
-                                <span className="subject">{mail.subject || '(无主题)'}</span>
+                                <span className="subject" title={mail.subject || '(无主题)'}>{mail.subject || '(无主题)'}</span>
                                 <span className="preview">{mailPreviewText(mail)}</span>
                                 <span className="time">{formatDate(mail.created_at)}</span>
                               </span>
@@ -1361,8 +1363,8 @@ export default function App() {
                     <div className="history-list">
                       {state.localAddresses.map((item) => (
                         <div key={item.jwt} className={cls('history-row', item.jwt === state.addressJwt && 'active')}>
-                          <button className="history-address" onClick={() => switchLocalAddress(item.jwt)}>
-                            <span className="address-name">{item.address}</span>
+                          <button className="history-address" onClick={() => switchLocalAddress(item.jwt)} title={item.address}>
+                            <span className="address-name" title={item.address}>{item.address}</span>
                             <span className="address-meta">{item.jwt === state.addressJwt ? '当前地址' : '点击切换'}</span>
                           </button>
                           <button className="history-copy" title="复制地址" onClick={() => copyText(item.address, '已复制')}>
