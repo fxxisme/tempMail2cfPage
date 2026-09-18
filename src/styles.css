@@ -71,52 +71,52 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* 核心色彩系统 (深色高辨识度 Indigo) */
-  --primary: #3b82f6;
-  --primary-hover: #60a5fa;
-  --primary-active: #93c5fd;
-  --primary-soft: rgba(59, 130, 246, 0.16);
-  --primary-soft-hover: rgba(59, 130, 246, 0.25);
-  --primary-border: rgba(59, 130, 246, 0.35);
-  --primary-glow: rgba(59, 130, 246, 0.3);
-  --primary-fg: #ffffff;
+  /* 核心亮色点缀 (Neon Cyan / Electric Teal 电光青蓝点缀) */
+  --primary: #00d2ff;
+  --primary-hover: #38bdf8;
+  --primary-active: #7dd3fc;
+  --primary-soft: rgba(0, 210, 255, 0.12);
+  --primary-soft-hover: rgba(0, 210, 255, 0.22);
+  --primary-border: rgba(0, 210, 255, 0.35);
+  --primary-glow: rgba(0, 210, 255, 0.35);
+  --primary-fg: #051019;
 
-  /* 背景体系与卡片深度 */
-  --bg-app: #090d16;
-  --bg-canvas: #0f172a;
-  --panel: #131b2e;
-  --panel-raised: #182239;
-  --panel-hover: #1e293b;
-  --panel-border: rgba(148, 163, 184, 0.14);
-  --panel-border-subtle: rgba(148, 163, 184, 0.08);
+  /* 高质感黑曜石暗黑背景层次 (Obsidian Deep Dark - 拒绝死黑纯黑，保留高级层次) */
+  --bg-app: #090b10;
+  --bg-canvas: #0f121a;
+  --panel: #131722;
+  --panel-raised: #181e2c;
+  --panel-hover: #1e2538;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-border-subtle: rgba(255, 255, 255, 0.04);
 
   /* 表单与输入元素 */
-  --input-bg: #0b1120;
-  --input-border: #1e293b;
-  --input-border-hover: #334155;
-  --input-focus-ring: rgba(59, 130, 246, 0.35);
+  --input-bg: #0c0f16;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --input-border-hover: rgba(0, 210, 255, 0.45);
+  --input-focus-ring: rgba(0, 210, 255, 0.3);
 
   /* 文字颜色层次 */
-  --text-main: #f8fafc;
-  --text-secondary: #94a3b8;
+  --text-main: #f3f4f6;
+  --text-secondary: #9ca3af;
   --text-muted: #64748b;
   --text-disabled: #475569;
 
   /* 状态功能色 */
-  --danger: #f87171;
-  --danger-hover: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.16);
-  --danger-border: rgba(239, 68, 68, 0.32);
+  --danger: #fb7185;
+  --danger-hover: #f43f5e;
+  --danger-soft: rgba(251, 113, 133, 0.15);
+  --danger-border: rgba(251, 113, 133, 0.3);
   --success: #34d399;
   --success-soft: rgba(52, 211, 153, 0.16);
   --warning: #fbbf24;
   --warning-soft: rgba(251, 191, 36, 0.16);
 
   /* 阴影体系 */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
-  --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 8px 24px -2px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 18px 40px -4px rgba(0, 0, 0, 0.65);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px -2px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 18px 40px -4px rgba(0, 0, 0, 0.75);
 }
 
 /* 基础全局设置 */
@@ -329,13 +329,13 @@ button:disabled {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+  color: var(--primary-fg);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px -1px var(--primary-glow);
+  box-shadow: 0 2px 10px var(--primary-glow);
   transition: transform var(--transition-normal);
 }
 
