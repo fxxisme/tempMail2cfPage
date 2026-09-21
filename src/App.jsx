@@ -380,9 +380,12 @@ export default function App() {
 
   function showToast(message, type = 'info') {
     if (!message) return
-    // Toast 是组件类，不能直接调用，必须走 info/success/warning/error 方法
-    const show = Toast[type] || Toast.info
-    show({ content: message, duration: 1.8, theme: 'light' })
+    // 静态方法依赖 this（内部调 this.create），必须直接以 Toast.xxx 调用，不能拆离后调用
+    const opts = { content: message, duration: 1.8, theme: 'light' }
+    if (type === 'success') Toast.success(opts)
+    else if (type === 'warning') Toast.warning(opts)
+    else if (type === 'error') Toast.error(opts)
+    else Toast.info(opts)
   }
 
   function showError(message) {
