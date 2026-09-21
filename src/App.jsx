@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LEFT_WORDS, MIDDLE_WORDS, RIGHT_WORDS } from './nameWords.js'
-import { Button, Checkbox, Input, Pagination, Select, Spin, Toast } from '@douyinfe/semi-ui'
+import { Button, Checkbox, Input, Modal, Pagination, Select, Spin, Toast } from '@douyinfe/semi-ui'
 import {
   IconAt,
   IconClose,
@@ -291,10 +291,10 @@ function cls(...items) {
 
 function getAvatarColor(name = '') {
   const colors = [
-    'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)',
+    'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
     'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
     'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+    'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
     'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
     'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
   ]
@@ -306,6 +306,24 @@ function getAvatarColor(name = '') {
 function getAvatarChar(name = '') {
   const clean = name.trim().replace(/^["']/, '')
   return (clean[0] || 'M').toUpperCase()
+}
+
+// 列表加载骨架屏（与 .message 卡片同构）
+function MessageSkeleton({ count = 5 }) {
+  return (
+    <>
+      {Array.from({ length: count }, (_, index) => (
+        <div className="message-skeleton" key={index}>
+          <div className="message-skeleton-avatar skeleton-line" />
+          <div className="message-skeleton-body">
+            <div className="message-skeleton-line skeleton-line short" />
+            <div className="message-skeleton-line skeleton-line mid" />
+            <div className="message-skeleton-line skeleton-line long" />
+          </div>
+        </div>
+      ))}
+    </>
+  )
 }
 
 export default function App() {
@@ -360,30 +378,69 @@ export default function App() {
   const createEnabled = canCreateAddress(state.settings)
   const deleteEnabled = canDeleteAddress(state.settings)
 
-  function showToast(message) {
+  function showToast(message, type = 'info') {
     if (!message) return
-    Toast.info({ content: message, duration: 1.6 })
+    Toast({
+      content: message,
+      type,
+      duration: 1.8,
+      theme: 'light',
+    })
+  }
+
+  function showError(message) {
+    if (!message) return
+    Toast.error({ content: message, duration: 2.4, theme: 'light' })
+  }
+
+  // 统一确认弹窗：替代原生 confirm()，支持 async
+  function confirmDialog(options) {
+    const { title, content, okText = '确认', danger = false } = options
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title,
+        content,
+        okText,
+        cancelText: '取消',
+        centered: true,
+        maskClosable: true,
+        type: danger ? 'warning' : 'default',
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false),
+        afterClose: () => resolve(false),
+      })
+    })
   }
 
   async function copyText(text, successMessage) {
     if (!text) return false
     try {
       await navigator.clipboard.writeText(text)
-      if (successMessage) showToast(successMessage)
+      if (successMessage) showToast(successMessage, 'success')
       return true
     } catch {
-      window.alert(text)
+      // 剪贴板不可用时的兼容：弹出可手动复制的对话框
+      Modal.info({
+        title: '手动复制',
+        content: (
+          <div style={{ wordBreak: 'break-all', fontFamily: 'var(--font-mono)' }}>{text}</div>
+        ),
+        okText: '知道了',
+        centered: true,
+      })
       return false
     }
   }
 
   function setError(error) {
-    setAppState({ error: error?.message || String(error || '未知错误') })
+    const message = error?.message || String(error || '未知错误')
+    setAppState({ error: message })
+    showError(message)
   }
 
   async function run(task, successMessage = '', key = '', { globalLoading = true } = {}) {
     if (key && inflightRef.current.has(key)) {
-      showToast('正在查询，请稍候')
+      showToast('正在查询，请稍候', 'warning')
       return null
     }
     if (key) inflightRef.current.add(key)
@@ -395,7 +452,7 @@ export default function App() {
     }
     try {
       const result = await task()
-      if (successMessage) showToast(successMessage)
+      if (successMessage) showToast(successMessage, 'success')
       return result
     } catch (error) {
       setError(error)
@@ -525,7 +582,7 @@ export default function App() {
   function generateDraftAddress(notify = true, selectedDomain = getState().selectedDomain) {
     const draftAddress = buildDraftAddress(getState().settings, selectedDomain)
     setAppState({ draftAddress })
-    if (notify) showToast('已生成新地址')
+    if (notify) showToast('已生成新地址', 'success')
   }
 
   function parseDraftAddress() {
@@ -603,7 +660,7 @@ export default function App() {
     saveAddressJwt(jwt)
     setAppState({ mails: [], selectedMailId: null })
     await refreshAddressSession()
-    showToast('已切换地址')
+    showToast('已切换地址', 'success')
   }
 
   function removeLocalAddress(jwt) {
@@ -611,7 +668,7 @@ export default function App() {
     const cached = readLocalAddressCache().filter((item) => item !== jwt)
     writeLocalAddressCache(cached)
     syncLocalAddresses()
-    showToast('已移除历史地址')
+    showToast('已移除历史地址', 'success')
   }
 
   async function refreshAddressSession() {
@@ -635,14 +692,20 @@ export default function App() {
   async function deleteSelectedMail() {
     const mail = getState().mails.find((item) => item.id === getState().selectedMailId) || getState().mails[0]
     if (!mail) return
-    if (!confirm('确定删除这封邮件？')) return
+    if (!(await confirmDialog({ title: '删除邮件', content: '确定删除这封邮件？删除后不可恢复。', okText: '删除', danger: true }))) return
     await run(() => api.deleteMail(mail.id), '邮件已删除')
     await fetchMails()
   }
 
   async function deleteAddress() {
     const current = getState()
-    if (!current.addressJwt || !confirm('确定删除当前地址？')) return
+    if (!current.addressJwt) return
+    if (!(await confirmDialog({
+      title: '删除地址',
+      content: `确定删除当前地址 ${current.address || ''}？删除后该地址将无法再收信。`,
+      okText: '删除',
+      danger: true,
+    }))) return
     if (!canDeleteAddress(current.settings)) {
       setAppState({ error: '当前配置不允许删除邮箱地址' })
       return
@@ -662,7 +725,7 @@ export default function App() {
   }
 
   async function clearInbox() {
-    if (!getState().addressJwt || !confirm('确定清空当前邮箱的所有邮件？')) return
+    if (!(await confirmDialog({ title: '清空收件箱', content: '确定清空当前邮箱的所有邮件？此操作不可撤销。', okText: '清空', danger: true }))) return
     const ok = await run(() => api.clearInbox(), '收件箱已清空')
     if (ok === null) return
     setAppState({ mails: [], selectedMailId: null })
@@ -784,7 +847,7 @@ export default function App() {
   }
 
   async function adminDeleteAddress(id) {
-    if (!confirm('确定删除这个地址？')) return
+    if (!(await confirmDialog({ title: '删除地址', content: '确定删除这个地址？删除后不可恢复。', okText: '删除', danger: true }))) return
     await run(() => api.adminDeleteAddress(id), '地址已删除')
     const { adminAddresses, adminAddressPage, adminAddressQuery } = getState()
     const page = adminAddresses.length <= 1 && adminAddressPage > 1 ? adminAddressPage - 1 : adminAddressPage
@@ -799,7 +862,7 @@ export default function App() {
   }
 
   async function adminDeleteMail(id) {
-    if (!confirm('确定删除这封邮件？')) return
+    if (!(await confirmDialog({ title: '删除邮件', content: '确定删除这封邮件？删除后不可恢复。', okText: '删除', danger: true }))) return
     await run(() => api.adminDeleteMail(id), '邮件已删除')
     const { adminMails, adminMailPage, adminMailQuery } = getState()
     const page = adminMails.length <= 1 && adminMailPage > 1 ? adminMailPage - 1 : adminMailPage
@@ -1143,6 +1206,19 @@ export default function App() {
                           <span>创建时间</span>
                           <span className="addr-actions">操作</span>
                         </div>
+                        {state.adminAddressesLoading && !state.adminAddresses.length ? (
+                          <>
+                            {Array.from({ length: 5 }, (_, index) => (
+                              <div className="addr-skeleton-row" key={index}>
+                                <div className="skeleton-line" />
+                                <div className="skeleton-line" />
+                                <div className="skeleton-line" />
+                                <div className="skeleton-line" />
+                                <div className="skeleton-line" />
+                              </div>
+                            ))}
+                          </>
+                        ) : null}
                         {state.adminAddresses.map((row) => (
                           <div key={row.id} className="addr-row">
                             <span className="addr-name" title={row.name}>{row.name}</span>
@@ -1201,10 +1277,12 @@ export default function App() {
                     <aside className="admin-mail-list">
                       <div className="admin-mail-scroll">
                         <Spin spinning={state.adminMailsLoading} wrapperClassName="admin-list-spin">
-                          {state.adminMails.map((mail) => (
+                          {state.adminMailsLoading && !state.adminMails.length ? <MessageSkeleton count={6} /> : null}
+                          {state.adminMails.map((mail, index) => (
                             <button
                               key={mail.id}
                               className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
+                              style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
                               onClick={() => selectAdminMail(mail)}
                             >
                               <span className="message-main">
@@ -1454,10 +1532,12 @@ export default function App() {
                   </div>
                 </div>
                 <div className="message-list">
-                  {filteredMails.map((mail) => (
+                  {state.loading && !filteredMails.length ? <MessageSkeleton count={6} /> : null}
+                  {filteredMails.map((mail, index) => (
                     <button
                       key={mail.id}
                       className={cls('message', selectedMail?.id === mail.id && 'active')}
+                      style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
                       onClick={() => selectMail(mail)}
                     >
                       <div className="sender-avatar" style={{ background: getAvatarColor(mail.source || mail.address || '') }}>

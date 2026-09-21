@@ -1,67 +1,77 @@
-/* TempMail Pro - 现代专业临时邮箱系统完整设计系统规范 */
+/* TempMail Pro - 统一设计系统：明暗主题共用色相，Semi 官方变量主题化 */
 
 :root {
   color-scheme: light;
 
-  /* 核心色彩系统 (Modern SaaS Trust Blue & Crisp Slate) */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-active: #1e40af;
-  --primary-soft: #eff6ff;
-  --primary-soft-hover: #dbeafe;
-  --primary-border: #bfdbfe;
-  --primary-glow: rgba(37, 99, 235, 0.22);
+  /* ===== 品牌色：靛蓝紫（明暗主题共用色相，仅调明度/饱和度） ===== */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-active: #4338ca;
+  --primary-soft: #eef2ff;
+  --primary-soft-hover: #e0e7ff;
+  --primary-border: #c7d2fe;
+  --primary-glow: rgba(99, 102, 241, 0.25);
   --primary-fg: #ffffff;
 
-  /* 背景体系与卡片深度 */
-  --bg-app: #f1f5f9;
-  --bg-canvas: #f8fafc;
+  /* ===== 背景与面板 ===== */
+  --bg-app: #f4f5f9;
+  --bg-canvas: #f8f9fc;
   --panel: #ffffff;
   --panel-raised: #ffffff;
-  --panel-hover: #f8fafc;
-  --panel-border: #e2e8f0;
-  --panel-border-subtle: #f1f5f9;
+  --panel-hover: #f6f7fb;
+  --panel-border: #e4e7ef;
+  --panel-border-subtle: #eef0f6;
 
-  /* 表单与输入元素 */
+  /* ===== 输入元素 ===== */
   --input-bg: #ffffff;
-  --input-border: #cbd5e1;
-  --input-border-hover: #94a3b8;
-  --input-focus-ring: rgba(37, 99, 235, 0.25);
+  --input-border: #d3d8e4;
+  --input-border-hover: #a6adc2;
+  --input-focus-ring: rgba(99, 102, 241, 0.22);
 
-  /* 文字颜色层次 */
-  --text-main: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-disabled: #cbd5e1;
+  /* ===== 文字层次（字号 scale 同步约束） ===== */
+  --text-main: #171923;
+  --text-secondary: #565d6f;
+  --text-muted: #8e94a8;
+  --text-disabled: #c2c7d5;
 
-  /* 状态功能色 */
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
-  --danger-soft: #fef2f2;
-  --danger-border: #fecaca;
-  --success: #10b981;
-  --success-soft: #ecfdf5;
-  --warning: #f59e0b;
-  --warning-soft: #fffbeb;
+  /* ===== 状态色 ===== */
+  --danger: #e5484d;
+  --danger-hover: #d93840;
+  --danger-soft: #fef1f1;
+  --danger-border: #f8cdce;
+  --success: #18a058;
+  --success-soft: #ebf9f1;
+  --warning: #d97706;
+  --warning-soft: #fdf6ec;
 
-  /* 阴影体系 */
-  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --shadow-sm: 0 2px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 6px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 14px 34px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.06);
+  /* ===== 阴影体系 ===== */
+  --shadow-xs: 0 1px 2px 0 rgba(23, 25, 35, 0.05);
+  --shadow-sm: 0 2px 8px -1px rgba(23, 25, 35, 0.07), 0 1px 3px 0 rgba(23, 25, 35, 0.04);
+  --shadow-md: 0 6px 20px -2px rgba(23, 25, 35, 0.09), 0 2px 6px -1px rgba(23, 25, 35, 0.04);
+  --shadow-lg: 0 14px 34px -4px rgba(23, 25, 35, 0.13), 0 4px 10px -2px rgba(23, 25, 35, 0.06);
 
-  /* 边角与布局系统 */
+  /* ===== 字号 scale（全站仅用这 6 档） ===== */
+  --fs-xs: 11px;    /* 标签、时间戳 */
+  --fs-sm: 12.5px;  /* 辅助文本、meta */
+  --fs-md: 13.5px;  /* 正文、按钮、输入框 */
+  --fs-lg: 15px;    /* 区块标题 */
+  --fs-xl: 18px;    /* 页面标题 */
+  --fs-2xl: 22px;   /* 邮件主题、登录标题 */
+
+  /* ===== 边角与布局 ===== */
   --radius-xs: 6px;
   --radius-sm: 8px;
   --radius: 12px;
   --radius-lg: 16px;
   --radius-full: 9999px;
 
-  /* 字体系统 */
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  /* ===== 字体系统：优先本地已装字体，完全离线可用 ===== */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+    "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo,
+    Consolas, monospace;
 
-  /* 动效系统 */
+  /* ===== 动效 ===== */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: 0.15s var(--ease-standard);
@@ -71,52 +81,81 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* 核心亮色点缀 (Neon Cyan / Electric Teal 电光青蓝点缀) */
-  --primary: #00d2ff;
-  --primary-hover: #38bdf8;
-  --primary-active: #7dd3fc;
-  --primary-soft: rgba(0, 210, 255, 0.12);
-  --primary-soft-hover: rgba(0, 210, 255, 0.22);
-  --primary-border: rgba(0, 210, 255, 0.35);
-  --primary-glow: rgba(0, 210, 255, 0.35);
-  --primary-fg: #051019;
+  /* 同一色相的暗色变体：低饱和、提亮，保持品牌一致性 */
+  --primary: #818cf8;
+  --primary-hover: #96a0fb;
+  --primary-active: #a5b0fc;
+  --primary-soft: rgba(129, 140, 248, 0.14);
+  --primary-soft-hover: rgba(129, 140, 248, 0.24);
+  --primary-border: rgba(129, 140, 248, 0.38);
+  --primary-glow: rgba(129, 140, 248, 0.3);
+  --primary-fg: #0d0f1e;
 
-  /* 高质感黑曜石暗黑背景层次 (Obsidian Deep Dark - 拒绝死黑纯黑，保留高级层次) */
-  --bg-app: #090b10;
-  --bg-canvas: #0f121a;
-  --panel: #131722;
-  --panel-raised: #181e2c;
-  --panel-hover: #1e2538;
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --panel-border-subtle: rgba(255, 255, 255, 0.04);
+  /* 深空灰蓝背景，层次感拒绝死黑 */
+  --bg-app: #0e1016;
+  --bg-canvas: #12141c;
+  --panel: #171a24;
+  --panel-raised: #1c202c;
+  --panel-hover: #20242f;
+  --panel-border: rgba(255, 255, 255, 0.09);
+  --panel-border-subtle: rgba(255, 255, 255, 0.05);
 
-  /* 表单与输入元素 */
-  --input-bg: #0c0f16;
-  --input-border: rgba(255, 255, 255, 0.12);
-  --input-border-hover: rgba(0, 210, 255, 0.45);
-  --input-focus-ring: rgba(0, 210, 255, 0.3);
+  --input-bg: #101219;
+  --input-border: rgba(255, 255, 255, 0.13);
+  --input-border-hover: rgba(129, 140, 248, 0.5);
+  --input-focus-ring: rgba(129, 140, 248, 0.28);
 
-  /* 文字颜色层次 */
-  --text-main: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-muted: #64748b;
-  --text-disabled: #475569;
+  --text-main: #eceef4;
+  --text-secondary: #9ba1b0;
+  --text-muted: #6b7180;
+  --text-disabled: #4c5261;
 
-  /* 状态功能色 */
-  --danger: #fb7185;
-  --danger-hover: #f43f5e;
-  --danger-soft: rgba(251, 113, 133, 0.15);
-  --danger-border: rgba(251, 113, 133, 0.3);
-  --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.16);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.16);
+  --danger: #f2666b;
+  --danger-hover: #f47f83;
+  --danger-soft: rgba(242, 102, 107, 0.14);
+  --danger-border: rgba(242, 102, 107, 0.32);
+  --success: #3dcd7c;
+  --success-soft: rgba(61, 205, 124, 0.15);
+  --warning: #f5b13d;
+  --warning-soft: rgba(245, 177, 61, 0.15);
 
-  /* 阴影体系 */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 24px -2px rgba(0, 0, 0, 0.65);
-  --shadow-lg: 0 18px 40px -4px rgba(0, 0, 0, 0.75);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px -2px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 18px 40px -4px rgba(0, 0, 0, 0.65);
+}
+
+/* ===== Semi Design 官方变量主题化（替代 !important hack 的正道） ===== */
+:root {
+  --semi-border-radius-small: 8px;
+  --semi-border-radius-medium: 8px;
+  --semi-border-radius-large: 12px;
+  --semi-border-radius-full: 9999px;
+  --semi-color-primary: var(--primary);
+  --semi-color-primary-hover: var(--primary-hover);
+  --semi-color-primary-active: var(--primary-active);
+  --semi-color-focus-border: var(--primary);
+  --semi-color-primary-light-default: var(--primary-soft);
+  --semi-color-primary-light-hover: var(--primary-soft-hover);
+  --semi-color-primary-light-active: var(--primary-border);
+  --semi-color-danger: var(--danger);
+  --semi-color-danger-hover: var(--danger-hover);
+  --semi-color-danger-light-default: var(--danger-soft);
+  --semi-color-success: var(--success);
+  --semi-color-warning: var(--warning);
+  --semi-color-text-0: var(--text-main);
+  --semi-color-text-1: var(--text-secondary);
+  --semi-color-text-2: var(--text-muted);
+  --semi-color-disabled-text: var(--text-disabled);
+  --semi-color-border: var(--panel-border);
+  --semi-color-fill-0: var(--bg-canvas);
+  --semi-color-fill-1: var(--panel-hover);
+  --semi-color-fill-2: var(--panel-border);
+  --semi-color-bg-0: var(--bg-app);
+  --semi-color-bg-1: var(--panel);
+  --semi-color-bg-2: var(--panel-raised);
+  --semi-color-bg-3: var(--panel-hover);
+  --semi-color-bg-4: var(--bg-canvas);
 }
 
 /* 基础全局设置 */
@@ -157,39 +196,74 @@ body {
   background: var(--text-muted);
 }
 
-/* Semi Design 强力主题覆盖 */
-body {
-  --semi-color-primary: var(--primary);
-  --semi-color-primary-hover: var(--primary-hover);
-  --semi-color-primary-active: var(--primary-active);
-  --semi-color-focus-border: var(--primary);
-  --semi-color-primary-light-default: var(--primary-soft);
-  --semi-color-primary-light-hover: var(--primary-soft-hover);
-}
-
+/* Semi 组件细节对齐（基础变量已在 :root 主题化，此处仅处理结构对齐） */
 .semi-select-field.semi-select,
 .semi-select-field .semi-select-selection {
-  background: var(--input-bg) !important;
-  border-color: var(--input-border) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--text-main) !important;
-  font-size: 13.5px !important;
-  transition: all var(--transition-fast) !important;
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: var(--fs-md);
+  transition: all var(--transition-fast);
 }
 
 .semi-select-field.semi-select:hover,
 .semi-select-field .semi-select-selection:hover {
-  border-color: var(--input-border-hover) !important;
+  border-color: var(--input-border-hover);
 }
 
 .semi-select-field.semi-select-focus .semi-select-selection {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--input-focus-ring);
 }
 
 .semi-select-selection-text,
 .semi-select-selection-placeholder {
-  color: var(--text-main) !important;
+  color: var(--text-main);
+}
+
+/* Semi 弹层（下拉/Modal/Toast）跟随主题背景与圆角 */
+.semi-portal {
+  --semi-color-bg-3: var(--panel-raised);
+  --semi-color-text-0: var(--text-main);
+  --semi-color-text-1: var(--text-secondary);
+  --semi-color-border: var(--panel-border);
+  --semi-color-fill-0: var(--panel-hover);
+}
+
+.semi-modal .semi-modal-content {
+  border-radius: var(--radius-lg);
+}
+
+/* Semi Toast 语义化样式：成功带图标色、失败用 danger 色 */
+.semi-toast {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--panel-raised) 92%, transparent);
+}
+
+/* Semi Pagination 对齐主题 */
+.semi-page-item {
+  border-radius: var(--radius-xs);
+}
+
+/* 骨架屏呼吸动效 */
+.skeleton-line {
+  border-radius: var(--radius-xs);
+  background: linear-gradient(
+    90deg,
+    var(--bg-canvas) 25%,
+    var(--panel-hover) 45%,
+    var(--bg-canvas) 65%
+  );
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* 基础交互按钮与输入 */
@@ -216,7 +290,7 @@ button:disabled {
   border: 1px solid var(--panel-border);
   background: var(--panel);
   color: var(--text-main);
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 600;
   gap: 7px;
   transition: all var(--transition-fast);
@@ -284,7 +358,7 @@ button:disabled {
   background: var(--input-bg);
   padding: 0 12px;
   color: var(--text-main);
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   outline: none;
   transition: all var(--transition-fast);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -329,7 +403,7 @@ button:disabled {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-active) 100%);
   color: var(--primary-fg);
   display: flex;
   align-items: center;
@@ -350,7 +424,7 @@ button:disabled {
 }
 
 .brand strong {
-  font-size: 15px;
+  font-size: var(--fs-lg);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-main);
@@ -360,7 +434,7 @@ button:disabled {
 .brand span {
   display: block;
   color: var(--text-muted);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-family: var(--font-mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -467,14 +541,14 @@ button:disabled {
 .badge {
   background: var(--primary-soft);
   color: var(--primary);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }
 
 .address-card-label {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--primary);
   text-transform: uppercase;
@@ -495,7 +569,7 @@ button:disabled {
 
 .address-card-value {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--fs-md);
   font-weight: 700;
   line-height: 1.4;
   word-break: break-all;
@@ -523,7 +597,7 @@ button:disabled {
 
 .input-label {
   color: var(--text-secondary);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -548,7 +622,7 @@ button:disabled {
   background: var(--panel);
   color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   outline: none;
   transition: all var(--transition-fast);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -566,7 +640,7 @@ button:disabled {
 .checkline {
   margin-top: 4px;
   color: var(--text-secondary);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
 }
 
 .generated-actions {
@@ -581,7 +655,7 @@ button:disabled {
 }
 
 .hint {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
   background: var(--bg-canvas);
   padding: 6px 10px;
@@ -602,7 +676,7 @@ button:disabled {
 .section-label {
   margin: 8px 0;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -654,7 +728,7 @@ button:disabled {
 }
 
 .history-address .address-name {
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-family: var(--font-mono);
   font-weight: 600;
   overflow: hidden;
@@ -667,7 +741,7 @@ button:disabled {
 
 .history-address .address-meta {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -727,14 +801,14 @@ button:disabled {
 }
 
 .toolbar-title strong {
-  font-size: 15px;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-main);
 }
 
 .toolbar-title span {
   color: var(--primary);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   background: var(--primary-soft);
   padding: 2px 8px;
@@ -802,6 +876,57 @@ button:disabled {
   position: relative;
   overflow: hidden;
   max-width: 100%;
+  animation: messageIn 0.28s var(--ease-spring) backwards;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 邮件列表骨架屏 */
+.message-skeleton {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-subtle);
+}
+
+.message-skeleton-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.message-skeleton-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.message-skeleton-line {
+  height: 11px;
+}
+
+.message-skeleton-line.short {
+  width: 40%;
+}
+
+.message-skeleton-line.mid {
+  width: 75%;
+}
+
+.message-skeleton-line.long {
+  width: 100%;
 }
 
 .message:hover {
@@ -821,16 +946,15 @@ button:disabled {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
   color: #ffffff;
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 6px var(--primary-glow);
 }
 
 /* 中间收件箱列表溢出处理 */
@@ -865,7 +989,7 @@ button:disabled {
 }
 
 .sender {
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text-main);
   overflow: hidden;
@@ -878,7 +1002,7 @@ button:disabled {
 
 .time {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
@@ -886,7 +1010,7 @@ button:disabled {
 }
 
 .subject {
-  font-size: 13px;
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--text-main);
   overflow: hidden;
@@ -899,7 +1023,7 @@ button:disabled {
 
 .preview {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -929,7 +1053,7 @@ button:disabled {
 
 .detail-subject {
   margin: 0 0 12px;
-  font-size: 20px;
+  font-size: var(--fs-xl);
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.02em;
@@ -947,7 +1071,7 @@ button:disabled {
   flex-wrap: wrap;
   gap: 8px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   margin-bottom: 14px;
 }
 
@@ -957,7 +1081,7 @@ button:disabled {
   background: var(--bg-canvas);
   border: 1px solid var(--panel-border);
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -996,7 +1120,7 @@ button:disabled {
   border-radius: 6px;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   transition: all var(--transition-fast);
 }
@@ -1024,7 +1148,7 @@ button:disabled {
 .text-mail,
 .compact-text-mail {
   font-family: inherit;
-  font-size: 14.5px;
+  font-size: var(--fs-md);
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -1046,9 +1170,13 @@ button:disabled {
   max-height: 100%;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
-  background: #ffffff;
+  background: var(--mail-frame-bg, #ffffff);
   box-shadow: var(--shadow-xs);
   flex: 1;
+}
+
+:root[data-theme="dark"] {
+  --mail-frame-bg: #ffffff; /* 邮件正文保持白底，确保 HTML 邮件渲染真实 */
 }
 
 /* 附件区域 */
@@ -1088,7 +1216,7 @@ button:disabled {
   min-width: 0;
   flex: 1;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-md);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1110,7 +1238,7 @@ button:disabled {
 
 .attachment-meta {
   color: var(--text-secondary);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
   font-family: var(--font-mono);
   flex-shrink: 0;
@@ -1156,12 +1284,12 @@ button:disabled {
 
 .empty-state strong {
   color: var(--text-main);
-  font-size: 16px;
+  font-size: var(--fs-lg);
   font-weight: 600;
 }
 
 .empty-state span {
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   color: var(--text-secondary);
   max-width: 280px;
   line-height: 1.5;
@@ -1201,7 +1329,7 @@ button:disabled {
 
 .login-box h1 {
   margin: 0 0 8px;
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-main);
@@ -1210,7 +1338,7 @@ button:disabled {
 .login-box p {
   margin: 0 0 24px;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--fs-md);
   line-height: 1.6;
 }
 
@@ -1265,12 +1393,12 @@ button:disabled {
   align-items: center;
   justify-content: center;
   color: var(--primary);
-  font-size: 22px;
+  font-size: var(--fs-2xl);
 }
 
 .boot-title {
   margin: 0 0 6px;
-  font-size: 17px;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.01em;
@@ -1278,7 +1406,7 @@ button:disabled {
 
 .boot-desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--text-secondary);
 }
 
@@ -1349,7 +1477,7 @@ button:disabled {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 500;
   text-align: left;
   transition: all var(--transition-fast);
@@ -1405,7 +1533,7 @@ button:disabled {
 
 .admin-page-head h1 {
   margin: 0 0 4px;
-  font-size: 18px;
+  font-size: var(--fs-xl);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -1413,7 +1541,7 @@ button:disabled {
 .admin-page-head p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: var(--fs-md);
 }
 
 .admin-section {
@@ -1462,7 +1590,7 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: var(--fs-xl);
 }
 
 .metric-body {
@@ -1473,7 +1601,7 @@ button:disabled {
 
 .metric span {
   color: var(--text-secondary);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 500;
 }
 
@@ -1508,7 +1636,7 @@ button:disabled {
   align-items: center;
   padding: 12px 16px;
   border-bottom: 1px solid var(--panel-border);
-  font-size: 13px;
+  font-size: var(--fs-md);
   transition: background var(--transition-fast);
 }
 
@@ -1523,7 +1651,7 @@ button:disabled {
 .addr-head {
   background: var(--bg-canvas);
   color: var(--text-muted);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1648,7 +1776,7 @@ button:disabled {
 
 .page-summary {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
 }
 
@@ -1696,7 +1824,7 @@ button:disabled {
   color: var(--text-secondary);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   flex-shrink: 0; /* 防止被挤压变形 */
   display: inline-block;
 }
@@ -1759,7 +1887,7 @@ button:disabled {
 
 .error-bar button {
   color: var(--danger);
-  font-size: 18px;
+  font-size: var(--fs-xl);
 }
 
 .loading {
@@ -1773,7 +1901,7 @@ button:disabled {
   border-radius: var(--radius-full);
   background: var(--panel);
   color: var(--primary);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   box-shadow: var(--shadow-md);
   display: flex;
@@ -1891,7 +2019,7 @@ button:disabled {
     justify-content: center;
     gap: 4px;
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 600;
     border-top: 2px solid transparent;
     transition: all var(--transition-fast);
@@ -2018,5 +2146,36 @@ button:disabled {
 
   .admin-mail-preview .mail-body {
     max-height: calc(100vh - 260px);
+  }
+}
+
+/* ========================================================
+   管理端表格骨架屏
+   ======================================================== */
+.addr-skeleton-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.6fr) 80px 160px auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--panel-border-subtle);
+}
+
+.addr-skeleton-row .skeleton-line {
+  height: 12px;
+}
+
+.addr-skeleton-row .skeleton-line:first-child {
+  width: 70%;
+}
+
+@media (max-width: 768px) {
+  .addr-skeleton-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .addr-skeleton-row .skeleton-line:first-child {
+    width: 60%;
   }
 }
