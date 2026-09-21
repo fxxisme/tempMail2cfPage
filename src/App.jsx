@@ -1281,18 +1281,17 @@ export default function App() {
                           {state.adminMails.map((mail, index) => (
                             <button
                               key={mail.id}
-                              className={cls('message', selectedAdminMail?.id === mail.id && 'active')}
+                              className={cls('message admin-message', selectedAdminMail?.id === mail.id && 'active')}
                               style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
                               onClick={() => selectAdminMail(mail)}
                             >
                               <span className="message-main">
-                                <span className="message-title">
+                                <span className="message-top">
                                   <span className="sender" title={mail.source || ''}>{mail.source || '-'}</span>
-                                  <span className="tag" title={mail.address || ''}>{mail.address || '邮件'}</span>
+                                  <span className="time">{formatListDate(mail.created_at)}</span>
                                 </span>
                                 <span className="subject" title={mail.subject || '(无主题)'}>{mail.subject || '(无主题)'}</span>
                                 <span className="preview">{mailPreviewText(mail)}</span>
-                                <span className="time">{formatDate(mail.created_at)}</span>
                               </span>
                             </button>
                           ))}

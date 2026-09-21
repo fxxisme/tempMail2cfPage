@@ -1723,7 +1723,16 @@ button:disabled {
   padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+/* 管理端邮件列表卡片：与用户端列表一致的紧凑布局，仅时间收尾 */
+.admin-message .message-top {
+  margin-bottom: 2px;
+}
+
+.admin-message .preview {
+  -webkit-line-clamp: 1; /* 详情面板里看全文，列表只留单行摘要 */
 }
 
 .admin-mail-preview {
@@ -1819,21 +1828,6 @@ button:disabled {
   overflow-x: auto;
   overflow-y: auto;
   flex: 1;
-}
-
-.admin-mail-list .tag {
-  max-width: 140px;
-  font-family: var(--font-mono);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background: var(--bg-canvas);
-  color: var(--text-secondary);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  font-size: var(--fs-xs);
-  flex-shrink: 0; /* 防止被挤压变形 */
-  display: inline-block;
 }
 
 /* ========================================================
