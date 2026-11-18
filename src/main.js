@@ -11,7 +11,7 @@ function isShareMode() {
   if (pathname.endsWith('/share')) return true
   const hash = window.location.hash || ''
   const search = window.location.search || ''
-  if (hash.includes('token=') || search.includes('token=')) {
+  if (hash.includes('token=') || search.includes('token=') || hash.includes('code=') || search.includes('code=')) {
     return true
   }
   return false

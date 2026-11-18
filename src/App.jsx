@@ -361,6 +361,9 @@ export default function App() {
   }), [])
 
   const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [shareCode, setShareCode] = useState('')
+  const [generatingShareCode, setGeneratingShareCode] = useState(false)
+  const [shareCodeError, setShareCodeError] = useState('')
   const [shareCustomDomain, setShareCustomDomain] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.shareCustomDomain)
     if (saved) return saved
@@ -369,11 +372,41 @@ export default function App() {
     return window.location.origin
   })
 
+  async function handleOpenShareModal() {
+    setShareModalVisible(true)
+    if (!state.addressJwt) return
+    setGeneratingShareCode(true)
+    setShareCodeError('')
+    try {
+      const res = await fetch('/share/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: state.addressJwt, address: state.address }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.code) {
+          setShareCode(data.code)
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        setShareCodeError(errData.error || '短码服务不可用')
+      }
+    } catch (err) {
+      setShareCodeError(err.message || '短码生成失败')
+    } finally {
+      setGeneratingShareCode(false)
+    }
+  }
+
   const currentShareLink = useMemo(() => {
     if (!state.addressJwt) return ''
     const base = (shareCustomDomain || window.location.origin).replace(/\/$/, '')
+    if (shareCode) {
+      return `${base}/#code=${shareCode}`
+    }
     return `${base}/#token=${encodeURIComponent(state.addressJwt)}&address=${encodeURIComponent(state.address || '')}`
-  }, [shareCustomDomain, state.addressJwt, state.address])
+  }, [shareCustomDomain, shareCode, state.addressJwt, state.address])
 
   const domainOptions = useMemo(() => getDomainOptions(state.settings), [state.settings])
   const filteredMails = useMemo(() => {
@@ -1406,7 +1439,7 @@ export default function App() {
                       <div className="address-card-value" title={state.address}>{state.address}</div>
                       <div className="address-card-actions">
                         <Button className="btn primary" icon={<IconCopy />} onClick={() => copyText(state.address, '地址已复制')}>复制地址</Button>
-                        <Button className="btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={() => setShareModalVisible(true)}>分享</Button>
+                        <Button className="btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={handleOpenShareModal}>分享</Button>
                         <Button className="btn icon" icon={<IconRefresh />} title="刷新收件箱" disabled={state.loading || !state.addressJwt} onClick={() => fetchMails()} />
                       </div>
                     </div>
@@ -1630,9 +1663,41 @@ export default function App() {
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {generatingShareCode ? (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <Spin tip="正在生成 12 位专属提取码..." />
+            </div>
+          ) : shareCode ? (
+            <div style={{ background: 'var(--primary-soft)', border: '1px solid var(--primary-border)', borderRadius: 'var(--radius)', padding: '16px 18px' }}>
+              <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--primary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <IconKey /> 专属 12 位收件提取码
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-main)', letterSpacing: '0.08em' }}>
+                  {shareCode}
+                </span>
+                <Button
+                  className="btn primary"
+                  size="small"
+                  icon={<IconCopy />}
+                  onClick={() => copyText(shareCode, '提取码已复制')}
+                >
+                  复制提取码
+                </Button>
+              </div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: 8 }}>
+                发给对方该 12 位码，对方在分享页输入回车即可直接收取邮件。
+              </div>
+            </div>
+          ) : shareCodeError ? (
+            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--warning)', background: 'var(--warning-soft)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+              提取码服务提示：{shareCodeError}（可在 Cloudflare Pages 绑定 SHARE_KV 命名空间开启 12 位短码；当前已自动为您使用直连链接）
+            </div>
+          ) : null}
+
           <div>
             <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 6 }}>
-              分享链接（对方打开后仅能收取查看该邮箱的邮件，无法操作主站）：
+              分享专属链接（对方打开后直接进入收件箱，无法看到或操作主站）：
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <Input
@@ -1657,7 +1722,7 @@ export default function App() {
               若您将此系统另外部署到了独立域名（如 <code>https://xxx.xxx.com</code>），请在此填入。分享链接将自动以此域名生成，对方将完全无法得知主站地址。
             </div>
             <Input
-              placeholder="例如 https://share.yourdomain.com"
+              placeholder="例如 https://tmp-mail.fkai2.com"
               value={shareCustomDomain}
               onChange={(val) => {
                 setShareCustomDomain(val)
