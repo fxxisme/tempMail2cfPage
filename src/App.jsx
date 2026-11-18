@@ -1679,10 +1679,10 @@ export default function App() {
         visible={shareModalVisible}
         onCancel={() => setShareModalVisible(false)}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={() => setShareModalVisible(false)}>关闭</Button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <Button className="btn" onClick={() => setShareModalVisible(false)}>关闭</Button>
             <Button
-              type="primary"
+              className="btn primary"
               icon={<IconCopy />}
               onClick={() => copyText(currentShareLink, '分享链接已复制')}
             >
@@ -1719,7 +1719,7 @@ export default function App() {
               </div>
             </div>
           ) : shareCodeError ? (
-            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--warning)', background: 'var(--warning-soft)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--warning)', background: 'var(--warning-soft)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--panel-border-subtle)' }}>
               提取码服务提示：{shareCodeError}（可在 Cloudflare Pages 绑定 SHARE_KV 命名空间开启 12 位短码；当前已自动为您使用直连链接）
             </div>
           ) : null}
@@ -1730,11 +1730,13 @@ export default function App() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <Input
+                className="field"
                 value={currentShareLink}
                 readOnly
                 style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' }}
               />
               <Button
+                className="btn"
                 icon={<IconCopy />}
                 onClick={() => copyText(currentShareLink, '分享链接已复制')}
               >
@@ -1743,7 +1745,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ background: 'var(--panel-hover)', padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--panel-border-subtle)' }}>
+          <div style={{ background: 'var(--bg-canvas)', padding: 14, borderRadius: 'var(--radius-sm)', border: '1px solid var(--panel-border)' }}>
             <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 600, color: 'var(--text-main)', marginBottom: 6 }}>
               配置独立分享域名（防主站暴露）
             </div>
@@ -1751,6 +1753,7 @@ export default function App() {
               若您将此系统另外部署到了独立域名（如 <code>https://xxx.xxx.com</code>），请在此填入。分享链接将自动以此域名生成，对方将完全无法得知主站地址。
             </div>
             <Input
+              className="field"
               placeholder="例如 https://tmp-mail.fkai2.com"
               value={shareCustomDomain}
               onChange={(val) => {

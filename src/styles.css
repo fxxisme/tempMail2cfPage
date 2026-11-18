@@ -238,8 +238,88 @@ body {
   --semi-color-fill-0: var(--panel-hover);
 }
 
-.semi-modal .semi-modal-content {
+.semi-portal .semi-modal .semi-modal-content {
+  background: var(--panel-raised) !important;
+  border: 1px solid var(--panel-border) !important;
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-main);
+}
+
+.semi-portal .semi-modal .semi-modal-header {
+  border-bottom: 1px solid var(--panel-border-subtle);
+  padding: 18px 24px 14px;
+}
+
+.semi-portal .semi-modal .semi-modal-title {
+  color: var(--text-main) !important;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.semi-portal .semi-modal .semi-modal-close {
+  color: var(--text-muted);
+  border-radius: var(--radius-xs);
+}
+
+.semi-portal .semi-modal .semi-modal-close:hover {
+  color: var(--text-main);
+  background: var(--panel-hover);
+}
+
+.semi-portal .semi-modal .semi-modal-body {
+  padding: 20px 24px;
+  color: var(--text-main);
+}
+
+.semi-portal .semi-modal .semi-modal-footer {
+  border-top: 1px solid var(--panel-border-subtle);
+  padding: 14px 24px 18px;
+  background: transparent;
+}
+
+/* Semi Modal 内部输入框深度主题化 */
+.semi-portal .semi-modal .semi-input-wrapper {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.semi-portal .semi-modal .semi-input-wrapper:hover {
+  border-color: var(--input-border-hover) !important;
+}
+
+.semi-portal .semi-modal .semi-input-wrapper-focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
+}
+
+.semi-portal .semi-modal .semi-input {
+  color: var(--text-main) !important;
+  background: transparent !important;
+  font-size: var(--fs-md);
+}
+
+.semi-portal .semi-modal .semi-input-wrapper-readonly {
+  background: var(--bg-canvas) !important;
+  border-color: var(--panel-border) !important;
+}
+
+.semi-portal .semi-modal .semi-input-wrapper-readonly .semi-input {
+  color: var(--text-main) !important;
+  cursor: text;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-canvas);
+  border: 1px solid var(--panel-border-subtle);
+  color: var(--primary);
 }
 
 /* Semi Toast 语义化样式：成功带图标色、失败用 danger 色 */
