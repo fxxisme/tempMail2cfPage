@@ -1439,7 +1439,7 @@ export default function App() {
                       <div className="address-card-value" title={state.address}>{state.address}</div>
                       <div className="address-card-actions">
                         <Button className="btn primary" icon={<IconCopy />} onClick={() => copyText(state.address, '地址已复制')}>复制地址</Button>
-                        <Button className="btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={handleOpenShareModal}>分享</Button>
+                        <Button className="btn share-btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={handleOpenShareModal}>分享</Button>
                         <Button className="btn icon" icon={<IconRefresh />} title="刷新收件箱" disabled={state.loading || !state.addressJwt} onClick={() => fetchMails()} />
                       </div>
                     </div>

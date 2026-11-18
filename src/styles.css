@@ -590,9 +590,24 @@ button:disabled {
 }
 
 .address-card-actions {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.address-card-actions .btn.primary {
+  flex: 1.25;
+  padding: 0 10px;
+}
+
+.address-card-actions .btn.share-btn {
+  flex: 1;
+  padding: 0 10px;
+}
+
+.address-card-actions .btn.icon {
+  flex-shrink: 0;
+  width: 38px;
 }
 
 /* 新建地址区域 */

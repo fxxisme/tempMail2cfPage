@@ -154,6 +154,7 @@ export default function ShareApp() {
 
   // 主题切换同步
   useEffect(() => {
+    document.documentElement.dataset.theme = theme
     const body = document.body
     if (theme === 'dark') {
       body.setAttribute('theme-mode', 'dark')
@@ -365,7 +366,6 @@ export default function ShareApp() {
               <span className="input-label">提取秘钥 / Token</span>
               <Input
                 className="field"
-                placeholder="例如：x7mk9q2p4w8v 或完整凭证"
                 value={inputCode}
                 onChange={setInputCode}
                 prefix={<IconKey />}
