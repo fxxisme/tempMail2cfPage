@@ -360,6 +360,8 @@ export default function App() {
   }), [])
 
   const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [shareTargetAddress, setShareTargetAddress] = useState('')
+  const [shareTargetJwt, setShareTargetJwt] = useState('')
   const [shareCode, setShareCode] = useState('')
   const [generatingShareCode, setGeneratingShareCode] = useState(false)
   const [shareCodeError, setShareCodeError] = useState('')
@@ -371,16 +373,22 @@ export default function App() {
     return window.location.origin
   })
 
-  async function handleOpenShareModal() {
-    setShareModalVisible(true)
-    if (!state.addressJwt) return
-    setGeneratingShareCode(true)
+  async function openShareModal(targetJwt, targetAddress) {
+    if (!targetJwt) {
+      showError('无法读取该邮箱的有效访问凭证')
+      return
+    }
+    setShareTargetJwt(targetJwt)
+    setShareTargetAddress(targetAddress || '')
+    setShareCode('')
     setShareCodeError('')
+    setShareModalVisible(true)
+    setGeneratingShareCode(true)
     try {
       const res = await fetch('/share/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: state.addressJwt, address: state.address }),
+        body: JSON.stringify({ token: targetJwt, address: targetAddress || '' }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -399,13 +407,15 @@ export default function App() {
   }
 
   const currentShareLink = useMemo(() => {
-    if (!state.addressJwt) return ''
+    const jwt = shareTargetJwt || state.addressJwt
+    const addr = shareTargetAddress || state.address || ''
+    if (!jwt) return ''
     const base = (shareCustomDomain || window.location.origin).replace(/\/$/, '')
     if (shareCode) {
       return `${base}/#code=${shareCode}`
     }
-    return `${base}/#token=${encodeURIComponent(state.addressJwt)}&address=${encodeURIComponent(state.address || '')}`
-  }, [shareCustomDomain, shareCode, state.addressJwt, state.address])
+    return `${base}/#token=${encodeURIComponent(jwt)}&address=${encodeURIComponent(addr)}`
+  }, [shareCustomDomain, shareCode, shareTargetJwt, shareTargetAddress, state.addressJwt, state.address])
 
   const domainOptions = useMemo(() => getDomainOptions(state.settings), [state.settings])
   const filteredMails = useMemo(() => {
@@ -940,6 +950,25 @@ export default function App() {
     await copyText(text, '地址凭证已复制')
   }
 
+  async function adminShareAddress(row) {
+    if (!row?.id) return
+    const result = await run(() => api.adminShowAddressCredential(row.id), '正在读取地址凭证...')
+    if (!result) return
+    let jwt = ''
+    if (typeof result === 'string') {
+      jwt = result.trim()
+    } else if (result?.jwt) {
+      jwt = result.jwt
+    } else if (result?.password) {
+      jwt = result.password
+    }
+    if (!jwt) {
+      showError('未获取到该地址的有效访问凭证')
+      return
+    }
+    await openShareModal(jwt, row.name)
+  }
+
   async function adminDeleteMail(id) {
     if (!(await confirmDialog({ title: '删除邮件', content: '确定删除这封邮件？删除后不可恢复。', okText: '删除', danger: true }))) return
     await run(() => api.adminDeleteMail(id), '邮件已删除')
@@ -1307,6 +1336,7 @@ export default function App() {
                             <span>{formatDate(row.created_at)}</span>
                             <span className="addr-actions">
                               <Button className="btn" icon={<IconEyeOpened />} disabled={state.adminMailsLoading} onClick={() => loadAdminMails(row.name)}>看邮件</Button>
+                              <Button className="btn icon" icon={<IconShareStroked />} title="分享此邮箱收件链接" disabled={state.loading} onClick={() => adminShareAddress(row)} />
                               <Button className="btn icon" icon={<IconKey />} title="复制凭证" disabled={state.loading} onClick={() => adminShowCredential(row.id)} />
                               <Button className="btn icon danger" type="danger" icon={<IconDelete />} title="删除地址" disabled={state.loading} onClick={() => adminDeleteAddress(row.id)} />
                             </span>
@@ -1468,7 +1498,7 @@ export default function App() {
                       <div className="address-card-value" title={state.address}>{state.address}</div>
                       <div className="address-card-actions">
                         <Button className="btn primary" icon={<IconCopy />} onClick={() => copyText(state.address, '地址已复制')}>复制地址</Button>
-                        <Button className="btn share-btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={handleOpenShareModal}>分享</Button>
+                        <Button className="btn share-btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={() => openShareModal(state.addressJwt, state.address)}>分享</Button>
                         <Button className="btn icon" icon={<IconRefresh />} title="刷新收件箱" disabled={state.loading || !state.addressJwt} onClick={() => fetchMails()} />
                       </div>
                     </div>
@@ -1692,6 +1722,15 @@ export default function App() {
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {(shareTargetAddress || state.address) ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--bg-canvas)', border: '1px solid var(--panel-border)', borderRadius: 'var(--radius-sm)' }}>
+              <IconMail style={{ color: 'var(--primary)', flexShrink: 0 }} />
+              <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>分享邮箱：</span>
+              <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-main)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
+                {shareTargetAddress || state.address}
+              </span>
+            </div>
+          ) : null}
           {generatingShareCode ? (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <Spin tip="正在生成 12 位专属提取码..." />
