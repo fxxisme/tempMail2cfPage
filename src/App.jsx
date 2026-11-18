@@ -13,12 +13,14 @@ import {
   IconHome,
   IconInbox,
   IconKey,
+  IconLink,
   IconList,
   IconLock,
   IconMail,
   IconMoon,
   IconRefresh,
   IconSearch,
+  IconShareStroked,
   IconShield,
   IconSun,
   IconSync,
@@ -56,6 +58,7 @@ const STORAGE_KEYS = {
   adminPassword: 'tm2_admin_password',
   localAddressCache: 'LocalAddressCache',
   theme: 'tm2_theme',
+  shareCustomDomain: 'tm2_share_custom_domain',
 }
 
 const DEFAULT_SETTINGS = {
@@ -356,6 +359,21 @@ export default function App() {
       adminPassword: current.adminPassword,
     }
   }), [])
+
+  const [shareModalVisible, setShareModalVisible] = useState(false)
+  const [shareCustomDomain, setShareCustomDomain] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.shareCustomDomain)
+    if (saved) return saved
+    const envDomain = import.meta.env.VITE_SHARE_BASE_URL
+    if (envDomain) return envDomain
+    return window.location.origin
+  })
+
+  const currentShareLink = useMemo(() => {
+    if (!state.addressJwt) return ''
+    const base = (shareCustomDomain || window.location.origin).replace(/\/$/, '')
+    return `${base}/#token=${encodeURIComponent(state.addressJwt)}&address=${encodeURIComponent(state.address || '')}`
+  }, [shareCustomDomain, state.addressJwt, state.address])
 
   const domainOptions = useMemo(() => getDomainOptions(state.settings), [state.settings])
   const filteredMails = useMemo(() => {
@@ -1388,6 +1406,7 @@ export default function App() {
                       <div className="address-card-value" title={state.address}>{state.address}</div>
                       <div className="address-card-actions">
                         <Button className="btn primary" icon={<IconCopy />} onClick={() => copyText(state.address, '地址已复制')}>复制地址</Button>
+                        <Button className="btn" icon={<IconShareStroked />} title="分享此邮箱" disabled={state.loading || !state.addressJwt} onClick={() => setShareModalVisible(true)}>分享</Button>
                         <Button className="btn icon" icon={<IconRefresh />} title="刷新收件箱" disabled={state.loading || !state.addressJwt} onClick={() => fetchMails()} />
                       </div>
                     </div>
@@ -1592,6 +1611,62 @@ export default function App() {
           </button>
         </div>
       ) : null}
+
+      <Modal
+        title="分享专属收件箱"
+        visible={shareModalVisible}
+        onCancel={() => setShareModalVisible(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <Button onClick={() => setShareModalVisible(false)}>关闭</Button>
+            <Button
+              type="primary"
+              icon={<IconCopy />}
+              onClick={() => copyText(currentShareLink, '分享链接已复制')}
+            >
+              复制分享链接
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 6 }}>
+              分享链接（对方打开后仅能收取查看该邮箱的邮件，无法操作主站）：
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Input
+                value={currentShareLink}
+                readOnly
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' }}
+              />
+              <Button
+                icon={<IconCopy />}
+                onClick={() => copyText(currentShareLink, '分享链接已复制')}
+              >
+                复制
+              </Button>
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--panel-hover)', padding: 12, borderRadius: 'var(--radius-sm)', border: '1px solid var(--panel-border-subtle)' }}>
+            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 600, color: 'var(--text-main)', marginBottom: 6 }}>
+              配置独立分享域名（防主站暴露）
+            </div>
+            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.5 }}>
+              若您将此系统另外部署到了独立域名（如 <code>https://xxx.xxx.com</code>），请在此填入。分享链接将自动以此域名生成，对方将完全无法得知主站地址。
+            </div>
+            <Input
+              placeholder="例如 https://share.yourdomain.com"
+              value={shareCustomDomain}
+              onChange={(val) => {
+                setShareCustomDomain(val)
+                localStorage.setItem(STORAGE_KEYS.shareCustomDomain, val)
+              }}
+            />
+          </div>
+        </div>
+      </Modal>
     </>
   )
 }
