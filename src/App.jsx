@@ -339,12 +339,11 @@ export default function App() {
   const adminAddressesReqRef = useRef(0)
 
   function setAppState(patch) {
-    setState((current) => {
-      const patchValue = typeof patch === 'function' ? patch(current) : patch
-      const next = { ...current, ...patchValue }
-      stateRef.current = next
-      return next
-    })
+    const patchValue = typeof patch === 'function' ? patch(stateRef.current) : patch
+    const next = { ...stateRef.current, ...patchValue }
+    stateRef.current = next
+    setState(next)
+    return next
   }
 
   function getState() {
@@ -577,13 +576,22 @@ export default function App() {
   }
 
   function parseJwtAddress(jwt) {
+    if (!jwt || typeof jwt !== 'string') return ''
     try {
-      const payload = JSON.parse(
-        decodeURIComponent(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))),
-      )
+      const base64 = jwt.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/')
+      if (!base64) return ''
+      const decoded = atob(base64)
+      const payload = JSON.parse(decoded)
       return payload.address || ''
     } catch {
-      return ''
+      try {
+        const base64 = jwt.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/')
+        const decoded = decodeURIComponent(escape(atob(base64)))
+        const payload = JSON.parse(decoded)
+        return payload.address || ''
+      } catch {
+        return ''
+      }
     }
   }
 
@@ -591,7 +599,7 @@ export default function App() {
     const current = getState()
     const cached = readLocalAddressCache()
     if (current.addressJwt && !cached.includes(current.addressJwt)) {
-      cached.push(current.addressJwt)
+      cached.unshift(current.addressJwt)
       writeLocalAddressCache(cached)
     }
     setAppState({
@@ -599,18 +607,21 @@ export default function App() {
         jwt,
         address: parseJwtAddress(jwt) || `invalid jwt [${jwt.slice(0, 12)}...]`,
         valid: !!parseJwtAddress(jwt),
-      })).reverse(), // 倒序，最新的在前面
+      })),
     })
   }
 
   function saveAddressJwt(jwt) {
-    setAppState({ addressJwt: jwt })
+    const parsedAddr = parseJwtAddress(jwt)
+    const patch = { addressJwt: jwt }
+    if (parsedAddr) {
+      patch.address = parsedAddr
+    }
+    setAppState(patch)
     localStorage.setItem(STORAGE_KEYS.addressJwt, jwt)
     const cached = readLocalAddressCache()
-    if (!cached.includes(jwt)) {
-      cached.push(jwt)
-      writeLocalAddressCache(cached)
-    }
+    const nextCached = [jwt, ...cached.filter((item) => item !== jwt)]
+    writeLocalAddressCache(nextCached)
     syncLocalAddresses()
   }
 
@@ -701,15 +712,29 @@ export default function App() {
       '地址已创建',
     )
     if (!result?.jwt) return
+    const parsedAddr = parseJwtAddress(result.jwt) || (normalizedName ? `${normalizedName}@${parsed.domain}` : '')
     saveAddressJwt(result.jwt)
-    setAppState({ addressPassword: result.password || '' })
+    setAppState({
+      address: parsedAddr,
+      addressPassword: result.password || '',
+      mails: [],
+      selectedMailId: null,
+      shareCode: '',
+    })
+    generateDraftAddress(false)
     await refreshAddressSession()
   }
 
   async function switchLocalAddress(jwt) {
     if (!jwt || jwt === getState().addressJwt) return
+    const parsedAddr = parseJwtAddress(jwt)
     saveAddressJwt(jwt)
-    setAppState({ mails: [], selectedMailId: null })
+    setAppState({
+      address: parsedAddr || getState().address,
+      mails: [],
+      selectedMailId: null,
+      shareCode: '',
+    })
     await refreshAddressSession()
     showToast('已切换地址', 'success')
   }
@@ -723,10 +748,13 @@ export default function App() {
   }
 
   async function refreshAddressSession() {
-    if (!getState().addressJwt) return
+    const currentJwt = getState().addressJwt
+    if (!currentJwt) return
     const settings = await run(() => api.getAddressSettings())
     if (!settings) return
-    setAppState({ address: settings.address || '' })
+    if (settings.address) {
+      setAppState({ address: settings.address })
+    }
     await fetchMails()
   }
 
@@ -986,9 +1014,10 @@ export default function App() {
       syncLocalAddresses()
       const current = getState()
       if (!current.addressJwt && current.localAddresses.length > 0) {
-        const addressJwt = current.localAddresses[current.localAddresses.length - 1].jwt
-        setAppState({ addressJwt })
-        localStorage.setItem(STORAGE_KEYS.addressJwt, addressJwt)
+        const target = current.localAddresses[0]
+        if (target?.jwt) {
+          saveAddressJwt(target.jwt)
+        }
       }
       const normalized = await fetchOpenSettings()
       if (!normalized) {
